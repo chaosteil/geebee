@@ -3,10 +3,16 @@
 
 namespace gb {
 
+class Program;
+
 class CPU {
  public:
   CPU();
   ~CPU();
+
+  void load(const Program& program);
+  void cycle();
+  void reset();
 };
 }
 
