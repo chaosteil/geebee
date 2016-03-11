@@ -10,6 +10,8 @@
 using namespace std;
 namespace po = boost::program_options;
 
+static gb::SDL sdl;
+
 int main(int argc, const char** argv) {
   cout << "GeeBee 0.1" << endl;
   po::options_description desc("Allowed options");
@@ -32,7 +34,6 @@ int main(int argc, const char** argv) {
     return 1;
   }
 
-  gb::SDL sdl;
   gb::Window window;
   SDL_Delay(1000);
 
