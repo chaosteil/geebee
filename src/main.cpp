@@ -1,8 +1,11 @@
 #include <iostream>
 #include <string>
 
-#include <SDL2/SDL.h>
 #include <boost/program_options.hpp>
+#include <SDL2/SDL.h>
+
+#include "sdl.h"
+#include "window.h"
 
 using namespace std;
 namespace po = boost::program_options;
@@ -29,14 +32,9 @@ int main(int argc, const char** argv) {
     return 1;
   }
 
-  SDL_Init(SDL_INIT_VIDEO);
-  {
-    auto window_deleter = [](SDL_Window* win) { SDL_DestroyWindow(win); };
-    auto window = unique_ptr<SDL_Window, decltype(window_deleter)>(SDL_CreateWindow("GeeBee", 0, 0, 160, 144, SDL_WINDOW_SHOWN), window_deleter);
-    SDL_Delay(1000);
-  }
-
-  SDL_Quit();
+  gb::SDL sdl;
+  gb::Window window;
+  SDL_Delay(1000);
 
   return 0;
 }
