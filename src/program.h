@@ -2,7 +2,8 @@
 #define GEEBEE_PROGRAM_H_
 
 #include <string>
-#include <vector>
+
+#include "types.h"
 
 namespace gb {
 
@@ -18,12 +19,12 @@ class Program {
 
   bool is_valid() const { return !rom_.empty(); }
 
-  const std::vector<char>& rom() const { return rom_; }
-  const std::vector<char>& bootrom() const { return bootrom_; }
+  const Bytes& rom() const { return rom_; }
+  const Bytes& bootrom() const { return bootrom_; }
 
  private:
-  std::vector<char> rom_;
-  std::vector<char> bootrom_;
+  Bytes rom_;
+  Bytes bootrom_;
 
   std::string title_;
   int type_{0};

@@ -1,7 +1,7 @@
 #ifndef GEEBEE_CPU_H_
 #define GEEBEE_CPU_H_
 
-#include <vector>
+#include "types.h"
 
 namespace gb {
 
@@ -18,8 +18,8 @@ class CPU {
  private:
   const Program& program_;
 
-  std::vector<char> ram_;
-  std::vector<char> vram_;
+  Bytes ram_;
+  Bytes vram_;
 };
 }
 
