@@ -2,6 +2,7 @@
 #define GEEBEE_CPU_H_
 
 #include "types.h"
+#include "memory.h"
 
 namespace gb {
 
@@ -14,12 +15,31 @@ class CPU {
 
   void reset();
   void cycle();
+  void printState();
 
  private:
-  const Program& program_;
+  void readInstruction();
 
-  Bytes ram_;
-  Bytes vram_;
+  void handleOpcode(Byte op);
+  void handlePrefixOpcode(Byte op);
+  void clearFlags();
+  void serializeFlags();
+
+  const Program& program_;
+  Memory memory_;
+
+  int af_;
+  int bc_;
+  int de_;
+  int hl_;
+  int sp_;
+  int pc_;
+  Byte interrupts_;
+
+  bool zero_;
+  bool add_;
+  bool half_carry_;
+  bool carry_;
 };
 }
 

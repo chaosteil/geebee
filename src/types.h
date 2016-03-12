@@ -4,7 +4,8 @@
 #include <vector>
 
 namespace gb {
-using Bytes = std::vector<char>;
+using Byte = unsigned char;
+using Bytes = std::vector<Byte>;
 }
 
 #endif
