@@ -14,6 +14,8 @@
 namespace gb {
 
 CPU::CPU(const Program& program) : program_(program), memory_(program) {
+  setupOpcodes();
+  setupCbOpcodes();
   reset();
 }
 
@@ -42,37 +44,58 @@ void CPU::printState() {
             << "SP: " << sp_ << " " << std::dec << std::endl;
 }
 
+void CPU::setupOpcodes() {
+  // clang-format off
+  opcodes_[0x00] = [&]() { return 4; };
+  opcodes_[0x10] = [&]() { std::runtime_error("STOP"); return 4; };
+
+  opcodes_[0x01] = [&]() { return load16Data(bc_); };
+  opcodes_[0x11] = [&]() { return load16Data(de_); };
+  opcodes_[0x21] = [&]() { return load16Data(hl_); };
+  opcodes_[0x31] = [&]() { return load16Data(sp_); };
+
+  opcodes_[0x06] = [&]() { return load8DataHigh(bc_); };
+  opcodes_[0x16] = [&]() { return load8DataHigh(de_); };
+  opcodes_[0x26] = [&]() { return load8DataHigh(hl_); };
+
+  opcodes_[0x0E] = [&]() { return load8DataLow(bc_); };
+  opcodes_[0x1E] = [&]() { return load8DataLow(de_); };
+  opcodes_[0x2E] = [&]() { return load8DataLow(hl_); };
+
+  opcodes_[0xCB] = [&]() {
+    Byte op = memory_.read(pc_++);
+    return cb_opcodes_[op]();
+  };
+
+  // clang-format on
+}
+
+void CPU::setupCbOpcodes() {
+  // clang-format off
+  for (int i = 0; i < 8; i++) {
+    cb_opcodes_[0x40 + i * 8] = [&]() { return handleBit(i, bits::high(bc_)); };
+    cb_opcodes_[0x41 + i * 8] = [&]() { return handleBit(i, bits::low(bc_)); };
+    cb_opcodes_[0x42 + i * 8] = [&]() { return handleBit(i, bits::high(de_)); };
+    cb_opcodes_[0x43 + i * 8] = [&]() { return handleBit(i, bits::low(de_)); };
+    cb_opcodes_[0x44 + i * 8] = [&]() { return handleBit(i, bits::high(hl_)); };
+    cb_opcodes_[0x45 + i * 8] = [&]() { return handleBit(i, bits::low(hl_)); };
+    cb_opcodes_[0x46 + i * 8] = [&]() { return handleBitData(i, hl_); };
+    cb_opcodes_[0x47 + i * 8] = [&]() { return handleBit(i, bits::high(af_)); };
+  }
+  // clang-format on
+}
+
 void CPU::readInstruction() {
-  Byte op = memory_.read(pc_);
-  pc_++;
+  Byte op = memory_.read(pc_++);
+  std::cout << "OP: 0x" << std::hex << (int)op << std::endl;
   handleOpcode(op);
 }
 
 void CPU::handleOpcode(Byte op) {
+  opcodes_[op]();
+  return;
+
   if (op == 0x0) {  // NOP
-  } else if (op == 0x0c) {
-    Byte value = bits::low(bc_);
-    add_ = false;
-    if (value == 0x0F) {
-      half_carry_ = true;
-      value++;
-    } else if (value == 0xFF) {
-      carry_ = true;
-      zero_ = true;
-      value = 0;
-    } else {
-      value++;
-    }
-    serializeFlags();
-
-  } else if (op == 0x0e) {  // LD C,d8
-    Byte value = memory_.read(pc_++);
-    bits::set_low(bc_, value);
-
-  } else if (op == 0x11) {  // LD DE,d16
-    Byte low = memory_.read(pc_++);
-    Byte high = memory_.read(pc_++);
-    de_ = bits::assemble(high, low);
 
   } else if (op == 0x1a) {  // LD A,(DE)
     Byte value = memory_.read(de_);
@@ -85,24 +108,10 @@ void CPU::handleOpcode(Byte op) {
       // timer
     }
 
-  } else if (op == 0x21) {  // LD HL,d16
-    Byte low = memory_.read(pc_++);
-    Byte high = memory_.read(pc_++);
-    hl_ = bits::assemble(high, low);
-
-  } else if (op == 0x31) {  // LD SP,d16
-    Byte low = memory_.read(pc_++);
-    Byte high = memory_.read(pc_++);
-    sp_ = bits::assemble(high, low);
-
   } else if (op == 0x32) {  // LD (HL-),A
     Byte high = bits::high(af_);
     memory_.write(hl_, high);
     hl_--;
-
-  } else if (op == 0x3e) {  // LD A,d8
-    Byte value = memory_.read(pc_++);
-    bits::set_high(af_, value);
 
   } else if (op == 0x77) {  // LD (HL),A
     Byte high = bits::high(af_);
@@ -119,7 +128,7 @@ void CPU::handleOpcode(Byte op) {
 
   } else if (op == 0xcb) {  // PREFIX CB
     Byte prefixOp = memory_.read(pc_++);
-    handlePrefixOpcode(prefixOp);
+    //handlePrefixOpcode(prefixOp);
 
   } else if (op == 0xcd) {  // CALL a16
     Byte low = memory_.read(pc_++);
@@ -155,31 +164,6 @@ void CPU::handleOpcode(Byte op) {
   // timer_ += timingtable[op];
 }
 
-void CPU::handlePrefixOpcode(Byte op) {
-  std::cout << "PREFIX: 0x" << std::hex << ((int)(op)&0xFF) << std::endl;
-  if (op == 0x20) {  // SLA B
-    clearFlags();
-    char high = bits::high(bc_);
-    if (high & 0x80) {
-      carry_ = true;
-    }
-    high <<= 1;
-    bits::set_high(bc_, high & 0xFF);
-    serializeFlags();
-
-  } else if (op == 0x7c) {  // BIT 7,H
-    zero_ = bits::highbit(hl_, 7);
-    add_ = false;
-    half_carry_ = true;
-    serializeFlags();
-
-  } else {
-    std::cout << "^-- NOPREFIX" << std::endl;
-    throw int();
-  }
-  // timer_ += prefixtimingtable[op];
-}
-
 void CPU::clearFlags() {
   zero_ = false;
   add_ = false;
@@ -192,5 +176,46 @@ void CPU::serializeFlags() {
   bits::set_bit(af_, 6, add_);
   bits::set_bit(af_, 5, half_carry_);
   bits::set_bit(af_, 4, carry_);
+}
+
+int CPU::load16Data(int& reg) {
+  Byte low = memory_.read(pc_++);
+  Byte high = memory_.read(pc_++);
+  reg = bits::assemble(high, low);
+
+  return 12;
+}
+
+int CPU::load8DataHigh(int& reg) {
+  Byte value = memory_.read(pc_++);
+
+  bits::set_high(reg, value);
+
+  return 8;
+}
+
+int CPU::load8DataLow(int& reg) {
+  Byte value = memory_.read(pc_++);
+
+  bits::set_low(reg, value);
+
+  return 8;
+}
+
+int CPU::handleBit(int bit, Byte byte) {
+  zero_ = (byte & (1 << bit)) == 0;
+  add_ = false;
+  half_carry_ = true;
+  serializeFlags();
+
+  return 8;
+}
+
+int CPU::handleBitData(int bit, int address) {
+  Byte value = memory_.read(address);
+
+  handleBit(bit, value);
+
+  return 16;
 }
 }
