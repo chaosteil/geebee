@@ -3,6 +3,8 @@
 #include <sstream>
 #include <fstream>
 
+#include <boost/range/adaptors.hpp>
+#include <boost/range/algorithm_ext.hpp>
 #include <boost/filesystem.hpp>
 
 using namespace std;
@@ -26,6 +28,8 @@ Program::Program(const string& rom_filename, const string& bootrom_filename) {
     bootrom_.assign(istreambuf_iterator<char>(bootrom_stream),
                     istreambuf_iterator<char>());
   }
+
+  boost::push_back(title_, rom_ | boost::adaptors::sliced(0x134, 0x134 + 11));
 }
 
 Program::~Program() {}

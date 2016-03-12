@@ -41,12 +41,13 @@ int main(int argc, const char** argv) {
   gb::Program program(vm["file"].as<string>(), vm["bootrom"].as<string>());
 
   if (!program.is_valid()) {
-    std::cout << "Invalid rom!" << std::endl;
+    cout << "Invalid rom!" << endl;
     return 2;
   }
 
-  std::cout << "rom size: " << program.rom().size() << std::endl;
-  std::cout << "bootrom size: " << program.bootrom().size() << std::endl;
+  cout << program.title() << endl;
+  cout << "rom size: " << program.rom().size() << endl;
+  cout << "bootrom size: " << program.bootrom().size() << endl;
 
   gb::CPU cpu(program);
 

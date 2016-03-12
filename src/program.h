@@ -12,6 +12,7 @@ class Program {
           const std::string& bootrom_filename = "");
   ~Program();
 
+  const std::string& title() const { return title_; }
   bool is_valid() const { return !rom_.empty(); }
 
   const std::vector<char>& rom() const { return rom_; }
@@ -20,6 +21,8 @@ class Program {
  private:
   std::vector<char> rom_;
   std::vector<char> bootrom_;
+
+  std::string title_;
 };
 }
 
