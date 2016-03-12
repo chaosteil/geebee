@@ -13,6 +13,9 @@ class Program {
   ~Program();
 
   const std::string& title() const { return title_; }
+  int type() const { return type_; }
+  int ram_size() const { return ram_size_; }
+
   bool is_valid() const { return !rom_.empty(); }
 
   const std::vector<char>& rom() const { return rom_; }
@@ -23,6 +26,8 @@ class Program {
   std::vector<char> bootrom_;
 
   std::string title_;
+  int type_{0};
+  int ram_size_{0};
 };
 }
 

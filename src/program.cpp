@@ -29,7 +29,10 @@ Program::Program(const string& rom_filename, const string& bootrom_filename) {
                     istreambuf_iterator<char>());
   }
 
-  boost::push_back(title_, rom_ | boost::adaptors::sliced(0x134, 0x134 + 11));
+  boost::push_back(title_, rom_ | boost::adaptors::sliced(0x0134, 0x0134 + 11));
+
+  type_ = rom_[0x0147];
+  ram_size_ = rom_[0x0149];
 }
 
 Program::~Program() {}
