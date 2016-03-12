@@ -4,6 +4,7 @@
 #include <boost/program_options.hpp>
 #include <SDL2/SDL.h>
 
+#include "cpu.h"
 #include "program.h"
 #include "sdl.h"
 #include "window.h"
@@ -38,11 +39,18 @@ int main(int argc, const char** argv) {
   }
 
   gb::Program program(vm["file"].as<string>(), vm["bootrom"].as<string>());
+
+  if (!program.is_valid()) {
+    std::cout << "Invalid rom!" << std::endl;
+    return 2;
+  }
+
   std::cout << "rom size: " << program.rom().size() << std::endl;
   std::cout << "bootrom size: " << program.bootrom().size() << std::endl;
 
+  gb::CPU cpu(program);
+
   gb::Window window;
-  SDL_Delay(1000);
 
   return 0;
 }

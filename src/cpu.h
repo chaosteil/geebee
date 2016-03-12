@@ -7,12 +7,14 @@ class Program;
 
 class CPU {
  public:
-  CPU();
+  CPU(const Program& program);
   ~CPU();
 
-  void load(const Program& program);
-  void cycle();
   void reset();
+  void cycle();
+
+ private:
+  const Program& program_;
 };
 }
 
