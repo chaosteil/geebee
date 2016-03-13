@@ -460,7 +460,7 @@ int CPU::load8High(int& reg, Byte byte) {
 }
 
 int CPU::load8Low(int& reg, Byte byte) {
-  bits::set_low(reg, byte);
+  bits::setLow(reg, byte);
   return 4;
 }
 
@@ -483,7 +483,7 @@ int CPU::load8DataHigh(int& reg) {
 int CPU::load8DataLow(int& reg) {
   Byte value = memory_.read(pc_++);
 
-  bits::set_low(reg, value);
+  bits::setLow(reg, value);
 
   return 8;
 }
@@ -578,7 +578,7 @@ int CPU::incLow(int& reg) {
   low++;
   low &= 0xFF;
   zero_ = low == 0;
-  bits::set_low(reg, low);
+  bits::setLow(reg, low);
   serializeFlags();
 
   return 4;
@@ -613,7 +613,7 @@ int CPU::decLow(int& reg) {
   low--;
   low &= 0xFF;
   zero_ = low == 0;
-  bits::set_low(reg, low);
+  bits::setLow(reg, low);
   serializeFlags();
 
   return 4;
@@ -758,7 +758,7 @@ int CPU::rotateLeftCarryLow(int& reg) {
 
   zero_ = byte == 0;
 
-  bits::set_low(reg, byte);
+  bits::setLow(reg, byte);
 
   serializeFlags();
 
