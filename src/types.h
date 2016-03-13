@@ -5,6 +5,7 @@
 
 namespace gb {
 using Byte = unsigned char;
+using SByte = char;
 using Bytes = std::vector<Byte>;
 }
 

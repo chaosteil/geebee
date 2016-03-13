@@ -17,6 +17,7 @@ bool lowbit(int value, int bit);
 Byte high(int value);
 Byte low(int value);
 
+void set_bit(Byte& value, int bit, bool flag);
 void set_bit(int& value, int bit, bool flag);
 void set_highbit(int& value, int bit, bool flag);
 void set_lowbit(int& value, int bit, bool flag);

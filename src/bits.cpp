@@ -33,6 +33,10 @@ Byte high(int value) { return (value >> 8) & 0xFF; }
 
 Byte low(int value) { return (value)&0xFF; }
 
+void set_bit(Byte& value, int bit, bool flag) {
+  value ^= (-flag ^ value) & (1 << bit);
+}
+
 void set_bit(int& value, int bit, bool flag) {
   value ^= (-flag ^ value) & (1 << bit);
 }
@@ -45,7 +49,7 @@ void set_lowbit(int& value, int bit, bool flag) { set_bit(value, bit, flag); }
 
 void set_high(int& value, Byte high) {
   value &= 0xFF;
-  value |= high << 4;
+  value |= (int)(high) << 8;
 }
 
 void set_low(int& value, Byte low) {

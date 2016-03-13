@@ -50,7 +50,7 @@ int main(int argc, const char** argv) {
   cout << "bootrom size: " << program.bootrom().size() << endl;
 
   gb::CPU cpu(program);
-  for (int i = 0; i < 0x100; ++i) {
+  for (;;) {
     cpu.cycle();
     cpu.printState();
   }
