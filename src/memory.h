@@ -18,6 +18,8 @@ class Memory {
   const Bytes& io() const { return io_; }
   const Bytes& hram() const { return hram_; }
 
+  bool booting() const { return booting_; }
+
   Bytes& ram() { return ram_; }
   Bytes& vram() { return vram_; }
   Bytes& sat() { return sat_; }
@@ -31,6 +33,8 @@ class Memory {
  private:
   static int in(int address, int from, int to);
   const Program& program_;
+
+  bool booting_;
 
   Bytes ram_;
   Bytes vram_;

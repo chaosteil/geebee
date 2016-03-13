@@ -7,9 +7,11 @@
 
 namespace gb {
 
-Memory::Memory(const Program& program) : program_(program) {}
+Memory::Memory(const Program& program) : program_(program) { reset(); }
 
 void Memory::reset() {
+  booting_ = true;
+
   ram_.assign(0x2000, 0);
   vram_.assign(0x2000, 0);
   sat_.assign(0xFEA0 - 0xFE00, 0);
@@ -18,12 +20,13 @@ void Memory::reset() {
 }
 
 Byte Memory::read(int address) const {
-  // Bootrom hacks
-  if (in(address, 0x0000, 0x0100)) {
-    return program_.bootrom()[address];
-
   // 16kB ROM Bank 00
-  } else if (in(address, 0x0000, 0x3FFF)) {
+  if (in(address, 0x0000, 0x3FFF)) {
+    // Bootrom
+    if (booting_ && in(address, 0x0000, 0x0100)) {
+      return program_.bootrom()[address];
+    }
+
     return program_.rom()[address];
 
   // 16kB ROM Bank 01..NN
@@ -112,6 +115,9 @@ void Memory::write(int address, Byte byte) {
   } else if (in(address, 0xFF00, 0xFF7F)) {
     io_[address - 0xFF00] = byte;
 
+    if (address == 0xFF50 && byte != 0x0) {
+      booting_ = false;
+    }
   // High RAM (HRAM)
   } else if (in(address, 0xFF80, 0xFFFE)) {
     hram_[address - 0xFF80] = byte;
