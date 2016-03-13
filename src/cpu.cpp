@@ -112,7 +112,7 @@ const std::array<std::string, 0x100> CPU::prefix_opcode_description_{
     "SET 6,(HL)", "SET 6,A", "SET 7,B",    "SET 7,C", "SET 7,D",    "SET 7,E",
     "SET 7,H",    "SET 7,L", "SET 7,(HL)", "SET 7,A"};
 
-CPU::CPU(const Program& program) : program_(program), memory_(program) {
+CPU::CPU(LCD& lcd, const Program& program) : program_(program), memory_(program) {
   setupOpcodes();
   setupCbOpcodes();
   reset();

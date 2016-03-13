@@ -5,6 +5,7 @@
 #include <SDL2/SDL.h>
 
 #include "cpu.h"
+#include "lcd.h"
 #include "program.h"
 #include "sdl.h"
 #include "window.h"
@@ -49,13 +50,18 @@ int main(int argc, const char** argv) {
   cout << "rom size: " << program.rom().size() << endl;
   cout << "bootrom size: " << program.bootrom().size() << endl;
 
-  gb::CPU cpu(program);
-  for (;;) {
+  gb::Window window;
+  gb::LCD lcd(window);
+
+  gb::CPU cpu(lcd, program);
+  while (true) {
+    if (window.handleEvents()) {
+      break;
+    }
     cpu.cycle();
     cpu.printState();
+    window.draw();
   }
-
-  gb::Window window;
 
   return 0;
 }

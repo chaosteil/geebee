@@ -9,11 +9,12 @@
 
 namespace gb {
 
+class LCD;
 class Program;
 
 class CPU {
  public:
-  CPU(const Program& program);
+  CPU(LCD& lcd, const Program& program);
   ~CPU();
 
   void reset();
