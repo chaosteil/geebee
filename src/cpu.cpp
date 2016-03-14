@@ -112,7 +112,8 @@ const std::array<std::string, 0x100> CPU::prefix_opcode_description_{
     "SET 6,(HL)", "SET 6,A", "SET 7,B",    "SET 7,C", "SET 7,D",    "SET 7,E",
     "SET 7,H",    "SET 7,L", "SET 7,(HL)", "SET 7,A"};
 
-CPU::CPU(LCD& lcd, const Program& program) : program_(program), memory_(program) {
+CPU::CPU(LCD& lcd, const Program& program)
+    : program_(program), memory_(program) {
   setupOpcodes();
   setupCbOpcodes();
   reset();
@@ -123,10 +124,14 @@ CPU::~CPU() {}
 void CPU::reset() {
   memory_.reset();
 
-  a_ = 0; f_ = 0;
-  b_ = 0; c_ = 0;
-  d_ = 0; e_ = 0;
-  h_ = 0; l_ = 0;
+  a_ = 0;
+  f_ = 0;
+  b_ = 0;
+  c_ = 0;
+  d_ = 0;
+  e_ = 0;
+  h_ = 0;
+  l_ = 0;
   sp_ = 0;
   pc_ = 0;
 
@@ -136,7 +141,9 @@ void CPU::reset() {
   clearFlags();
 }
 
-void CPU::cycle() { if (!halt_) readInstruction(); }
+void CPU::cycle() {
+  if (!halt_) readInstruction();
+}
 
 void CPU::printState() {
   std::cout << std::hex << "AF: " << (int)a_ << (int)f_ << " "
@@ -798,5 +805,4 @@ int CPU::daa() {
 
   return 4;
 }
-
 }

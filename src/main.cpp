@@ -46,7 +46,8 @@ int main(int argc, const char** argv) {
     return 2;
   }
 
-  cout << program.title() << " " << program.type() << " " << program.ram_size() << endl;
+  cout << program.title() << " " << program.type() << " " << program.ram_size()
+       << endl;
   cout << "rom size: " << program.rom().size() << endl;
   cout << "bootrom size: " << program.bootrom().size() << endl;
 
@@ -59,8 +60,7 @@ int main(int argc, const char** argv) {
       break;
     }
     cpu.cycle();
-    if (cpu.memory().drawable())
-      lcd.draw(cpu.memory().vram());
+    if (cpu.memory().drawable()) lcd.draw(cpu.memory().vram());
     window.draw();
   }
 

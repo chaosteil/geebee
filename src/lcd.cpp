@@ -30,8 +30,8 @@ void LCD::draw(const Bytes& bytes) {
     for (int x = 0; x < 32; ++x) {
       Byte tile = bytes[z + 0x1800];
       for (int i = 0; i < 8; ++i) {
-        Byte bottom = bytes[tile*16 + i*2];
-        Byte top = bytes[tile*16+1 + i*2];
+        Byte bottom = bytes[tile * 16 + i * 2];
+        Byte top = bytes[tile * 16 + 1 + i * 2];
 
         int a = color(7, bottom, top);
         int b = color(6, bottom, top);
@@ -41,14 +41,22 @@ void LCD::draw(const Bytes& bytes) {
         int f = color(2, bottom, top);
         int g = color(1, bottom, top);
         int h = color(0, bottom, top);
-        pixels[x * 8 + 0 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, a, a, a, 255);
-        pixels[x * 8 + 1 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, b, b, b, 255);
-        pixels[x * 8 + 2 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, c, c, c, 255);
-        pixels[x * 8 + 3 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, d, d, d, 255);
-        pixels[x * 8 + 4 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, e, e, e, 255);
-        pixels[x * 8 + 5 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, f, f, f, 255);
-        pixels[x * 8 + 6 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, g, g, g, 255);
-        pixels[x * 8 + 7 + ((y * 8) + i) * 256] = SDL_MapRGBA(format, h, h, h, 255);
+        pixels[x * 8 + 0 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, a, a, a, 255);
+        pixels[x * 8 + 1 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, b, b, b, 255);
+        pixels[x * 8 + 2 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, c, c, c, 255);
+        pixels[x * 8 + 3 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, d, d, d, 255);
+        pixels[x * 8 + 4 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, e, e, e, 255);
+        pixels[x * 8 + 5 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, f, f, f, 255);
+        pixels[x * 8 + 6 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, g, g, g, 255);
+        pixels[x * 8 + 7 + ((y * 8) + i) * 256] =
+            SDL_MapRGBA(format, h, h, h, 255);
       }
       z++;
     }

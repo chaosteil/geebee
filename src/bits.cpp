@@ -76,6 +76,5 @@ int dec(Byte& high, Byte& low) {
 
   return value;
 }
-
 }
 }

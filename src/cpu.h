@@ -24,7 +24,7 @@ class CPU {
 
  private:
   using Opcodes = std::array<std::function<int()>, 0x100>;
-  
+
   static const std::array<std::string, 0x100> opcode_description_;
   static const std::array<std::string, 0x100> prefix_opcode_description_;
 
@@ -79,10 +79,14 @@ class CPU {
   Opcodes opcodes_;
   Opcodes cb_opcodes_;
 
-  Byte a_; Byte f_;
-  Byte b_; Byte c_;
-  Byte d_; Byte e_;
-  Byte h_; Byte l_;
+  Byte a_;
+  Byte f_;
+  Byte b_;
+  Byte c_;
+  Byte d_;
+  Byte e_;
+  Byte h_;
+  Byte l_;
 
   int sp_;
   int pc_;
