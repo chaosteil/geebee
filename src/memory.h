@@ -19,6 +19,7 @@ class Memory {
   const Bytes& hram() const { return hram_; }
 
   bool booting() const { return booting_; }
+  bool drawable() const { return drawable_; }
 
   Bytes& ram() { return ram_; }
   Bytes& vram() { return vram_; }
@@ -35,6 +36,7 @@ class Memory {
   const Program& program_;
 
   bool booting_;
+  mutable bool drawable_{false};
 
   Bytes ram_;
   Bytes vram_;

@@ -17,6 +17,7 @@ class CPU {
   CPU(LCD& lcd, const Program& program);
   ~CPU();
 
+  Memory& memory() { return memory_; }
   void reset();
   void cycle();
   void printState();

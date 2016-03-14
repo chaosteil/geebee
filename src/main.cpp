@@ -60,6 +60,8 @@ int main(int argc, const char** argv) {
     }
     cpu.cycle();
     cpu.printState();
+    if (cpu.memory().drawable())
+      lcd.draw(cpu.memory().vram());
     window.draw();
   }
 

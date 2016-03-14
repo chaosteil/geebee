@@ -63,6 +63,10 @@ Byte Memory::read(int address) const {
 
   // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
+    if (address == 0xFF44) {
+      drawable_ = true;
+      //return 0x90;
+    }
     return io_[address - 0xFF00];
 
   // High RAM (HRAM)
@@ -113,6 +117,7 @@ void Memory::write(int address, Byte byte) {
 
   // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
+    std::cout << "IO WRITE: " << std::hex << address << " " << byte << std::endl;
     io_[address - 0xFF00] = byte;
 
     if (address == 0xFF50 && byte != 0x0) {

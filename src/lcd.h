@@ -12,6 +12,7 @@ class LCD {
   LCD(Window& window);
   ~LCD() = default;
 
+  void draw(const Bytes& bytes);
   void write(int address, Byte byte);
   Byte read(int address);
   int control() const { return control_; }
