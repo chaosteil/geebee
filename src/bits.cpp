@@ -56,5 +56,26 @@ void setLow(int& value, Byte low) {
   value &= 0xFF00;
   value |= low;
 }
+
+int inc(Byte& high, Byte& low) {
+  int value = bits::assemble(high, low);
+  value++;
+  value &= 0xFFFF;
+  high = bits::high(value);
+  low = bits::low(value);
+
+  return value;
+}
+
+int dec(Byte& high, Byte& low) {
+  int value = bits::assemble(high, low);
+  value--;
+  value &= 0xFFFF;
+  high = bits::high(value);
+  low = bits::low(value);
+
+  return value;
+}
+
 }
 }

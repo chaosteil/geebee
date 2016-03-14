@@ -23,6 +23,9 @@ void setHighBit(int& value, int bit, bool flag);
 void setLowBit(int& value, int bit, bool flag);
 void setHigh(int& value, Byte high);
 void setLow(int& value, Byte low);
+
+int inc(Byte& high, Byte& low);
+int dec(Byte& high, Byte& low);
 }
 }
 

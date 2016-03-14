@@ -36,14 +36,7 @@ class CPU {
   void clearFlags();
   void serializeFlags();
 
-  int load8High(int& reg, Byte byte);
-  int load8Low(int& reg, Byte byte);
-
-  int load16Data(int& reg);
-  int load8DataHigh(int& reg);
-  int load8DataLow(int& reg);
-
-  int writeData(int address, Byte byte);
+  int load16Data(Byte& high, Byte& low);
 
   int write16DataAddress();
   int load16DataAddress();
@@ -53,13 +46,8 @@ class CPU {
   int call16Data(bool jump);
   int ret(bool jump);
 
-  int incReg(int& reg);
-  int incHigh(int& reg);
-  int incLow(int& reg);
-
-  int decReg(int& reg);
-  int decHigh(int& reg);
-  int decLow(int& reg);
+  int inc(Byte& byte);
+  int dec(Byte& byte);
 
   int compare(Byte byte);
 
@@ -67,29 +55,21 @@ class CPU {
   int handleXor(Byte byte);
   int handleOr(Byte byte);
 
-  int shiftRightLogicalHigh(int& reg);
-  int shiftRightLogicalLow(int& reg);
-  int handleSwapHigh(int &reg);
-  int handleSwapLow(int &reg);
+  int shiftRightLogical(Byte& byte);
+  int handleSwap(Byte& byte);
   int handleBit(int bit, Byte byte);
-  int handleResHigh(int bit, int& reg);
-  int handleResLow(int bit, int& reg);
-  int handleResMemory(int bit, int address);
-  int handleSetHigh(int bit, int& reg);
-  int handleSetLow(int bit, int& reg);
-  int handleSetMemory(int bit, int address);
+  int handleRes(int bit, Byte& byte);
+  int handleSet(int bit, Byte& byte);
 
   int handleRst(Byte offset);
 
-  int pop(int& reg);
-  int push(int reg);
+  int pop(Byte& high, Byte& low);
+  int push(Byte high, Byte low);
 
   int add8Stack();
 
-  int rotateLeftHigh(int& reg);
-  int rotateLeftLow(int& reg);
-  int rotateLeftCarryHigh(int& reg);
-  int rotateLeftCarryLow(int& reg);
+  int rotateLeft(Byte& byte);
+  int rotateLeftCarry(Byte& byte);
 
   int daa();
 
@@ -99,10 +79,11 @@ class CPU {
   Opcodes opcodes_;
   Opcodes cb_opcodes_;
 
-  int af_;
-  int bc_;
-  int de_;
-  int hl_;
+  Byte a_; Byte f_;
+  Byte b_; Byte c_;
+  Byte d_; Byte e_;
+  Byte h_; Byte l_;
+
   int sp_;
   int pc_;
 
