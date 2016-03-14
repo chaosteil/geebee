@@ -436,6 +436,7 @@ void CPU::readInstruction() {
   std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
             << (int)op << std::endl;
   handleOpcode(op);
+  printState();
 }
 
 void CPU::handleOpcode(Byte op) { int timing = opcodes_[op](); }
@@ -517,11 +518,9 @@ int CPU::load16DataAddress() {
 int CPU::jumpRelative8Data(bool jump) {
   SByte address = memory_.read(pc_++);
   if (jump) {
-    std::cout << "JMP" << std::endl;
     pc_ += address;
     return 12;
   } else {
-    std::cout << "NO JMP" << std::endl;
     return 8;
   }
 }
@@ -728,9 +727,7 @@ int CPU::add8Stack() {
 int CPU::rotateLeftCarryHigh(int& reg) {
   Byte byte = bits::high(reg);
   bool carry = carry_;
-  if (bits::bit(byte, 7)) {
-    carry_ = true;
-  }
+  carry_ = bits::bit(byte, 7);
   byte <<= 1;
   if (carry) {
     byte |= 1;
@@ -748,9 +745,7 @@ int CPU::rotateLeftCarryHigh(int& reg) {
 int CPU::rotateLeftCarryLow(int& reg) {
   Byte byte = bits::low(reg);
   bool carry = carry_;
-  if (bits::bit(byte, 7)) {
-    carry_ = true;
-  }
+  carry_ = bits::bit(byte, 7);
   byte <<= 1;
   if (carry) {
     byte |= 1;

@@ -33,6 +33,7 @@ class Memory {
 
  private:
   static int in(int address, int from, int to);
+
   const Program& program_;
 
   bool booting_;

@@ -27,58 +27,60 @@ Byte Memory::read(int address) const {
       return program_.bootrom()[address];
     }
 
+    std::cout << "ROM: " << (int)program_.rom()[address] << std::endl;
     return program_.rom()[address];
 
-  // 16kB ROM Bank 01..NN
+    // 16kB ROM Bank 01..NN
   } else if (in(address, 0x4000, 0x7FFF)) {
     return program_.rom()[address];
 
-  // 8kB Video RAM (VRAM)
+    // 8kB Video RAM (VRAM)
   } else if (in(address, 0x8000, 0x9FFF)) {
     return vram_[address - 0x8000];
 
-  // 8kB External RAM
+    // 8kB External RAM
   } else if (in(address, 0xA000, 0xBFFF)) {
     throw std::runtime_error("Reading External RAM");
 
-  // 4KB Work RAM Bank 0 (WRAM)
+    // 4KB Work RAM Bank 0 (WRAM)
   } else if (in(address, 0xC000, 0xCFFF)) {
     return ram_[address - 0xC000];
 
-  // 4KB Work RAM Bank 1 (WRAM)
+    // 4KB Work RAM Bank 1 (WRAM)
   } else if (in(address, 0xD000, 0xDFFF)) {
     return ram_[address - 0xC000];
 
-  // Same as C000-DDFF (ECHO)
+    // Same as C000-DDFF (ECHO)
   } else if (in(address, 0xE000, 0xFDFF)) {
     return ram_[address - 0xC000];
 
-  // Sprite Attribute Table (OAM)
+    // Sprite Attribute Table (OAM)
   } else if (in(address, 0xFE00, 0xFE9F)) {
     return sat_[address - 0xFE00];
 
-  // Not Usable
+    // Not Usable
   } else if (in(address, 0xFEA0, 0xFEFF)) {
     throw std::runtime_error("Reading Not Usable Memory");
 
-  // I/O Ports
+    // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
     if (address == 0xFF44) {
       drawable_ = true;
-      //return 0x90;
+      // return 0x90;
     }
     return io_[address - 0xFF00];
 
-  // High RAM (HRAM)
+    // High RAM (HRAM)
   } else if (in(address, 0xFF80, 0xFFFE)) {
     return hram_[address - 0xFF80];
 
-  // Interrupt Enable Register
+    // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
     throw std::runtime_error("Reading Interrupt Enable Register");
 
   } else {
-    throw std::runtime_error("Completely invalid address " + std::to_string(address));
+    throw std::runtime_error("Completely invalid address " +
+                             std::to_string(address));
   }
 }
 
@@ -87,57 +89,60 @@ void Memory::write(int address, Byte byte) {
   if (in(address, 0x0000, 0x7FFF)) {
     throw std::runtime_error("Writing ROM");
 
-  // 8kB Video RAM (VRAM)
+    // 8kB Video RAM (VRAM)
   } else if (in(address, 0x8000, 0x9FFF)) {
+    std::cout << "VRAM WRITE: " << std::hex << (int)address << " " << (int)byte
+              << std::endl;
     vram_[address - 0x8000] = byte;
 
-  // 8kB External RAM
+    // 8kB External RAM
   } else if (in(address, 0xA000, 0xBFFF)) {
     throw std::runtime_error("Writing External RAM");
 
-  // 4KB Work RAM Bank 0 (WRAM)
+    // 4KB Work RAM Bank 0 (WRAM)
   } else if (in(address, 0xC000, 0xCFFF)) {
     ram_[address - 0xC000] = byte;
 
-  // 4KB Work RAM Bank 1 (WRAM)
+    // 4KB Work RAM Bank 1 (WRAM)
   } else if (in(address, 0xD000, 0xDFFF)) {
     ram_[address - 0xC000] = byte;
 
-  // Same as C000-DDFF (ECHO)
+    // Same as C000-DDFF (ECHO)
   } else if (in(address, 0xE000, 0xFDFF)) {
     ram_[address - 0xC000] = byte;
 
-  // Sprite Attribute Table (OAM)
+    // Sprite Attribute Table (OAM)
   } else if (in(address, 0xFE00, 0xFE9F)) {
     sat_[address - 0xFE00] = byte;
 
-  // Not Usable
+    // Not Usable
   } else if (in(address, 0xFEA0, 0xFEFF)) {
     throw std::runtime_error("Writing Not Usable Memory");
 
-  // I/O Ports
+    // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
-    std::cout << "IO WRITE: " << std::hex << address << " " << byte << std::endl;
+    std::cout << "IO WRITE: " << std::hex << (int)address << " " << byte
+              << std::endl;
     io_[address - 0xFF00] = byte;
 
     if (address == 0xFF50 && byte != 0x0) {
       booting_ = false;
     }
-  // High RAM (HRAM)
+    // High RAM (HRAM)
   } else if (in(address, 0xFF80, 0xFFFE)) {
     hram_[address - 0xFF80] = byte;
 
-  // Interrupt Enable Register
+    // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
     throw std::runtime_error("Writing Interrupt Enable Register");
 
   } else {
-    throw std::runtime_error("Completely invalid address " + std::to_string(address));
+    throw std::runtime_error("Completely invalid address " +
+                             std::to_string(address));
   }
 }
 
 int Memory::in(int address, int from, int to) {
   return address >= from && address <= to;
 }
-
 }
