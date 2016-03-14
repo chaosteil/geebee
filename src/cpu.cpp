@@ -130,10 +130,13 @@ void CPU::reset() {
   sp_ = 0;
   pc_ = 0;
 
+  interrupts_ = false;
+  halt_ = false;
+
   clearFlags();
 }
 
-void CPU::cycle() { readInstruction(); }
+void CPU::cycle() { if (!halt_) readInstruction(); }
 
 void CPU::printState() {
   std::cout << std::hex << "AF: " << af_ << " "
@@ -150,7 +153,7 @@ void CPU::printState() {
 void CPU::setupOpcodes() {
   // clang-format off
   opcodes_[0x00] = [&]() { return 4; };
-  opcodes_[0x10] = [&]() { std::runtime_error("STOP"); return 4; };
+  opcodes_[0x10] = [&]() { halt_ = true; /* HALT LCD */ return 4; };
 
   opcodes_[0x20] = [&]() { return jumpRelative8Data(!zero_); };
   opcodes_[0x30] = [&]() { return jumpRelative8Data(!carry_); };
@@ -173,24 +176,24 @@ void CPU::setupOpcodes() {
   opcodes_[0x04] = [&]() { return incHigh(bc_); };
   opcodes_[0x14] = [&]() { return incHigh(de_); };
   opcodes_[0x24] = [&]() { return incHigh(hl_); };
-  // INC (HL)
+  opcodes_[0x34] = [&]() { Byte byte = memory_.read(hl_); int reg = 0; bits::setLow(reg, byte); incLow(reg); byte = bits::low(reg); memory_.write(hl_, byte); return 12; };
   
   opcodes_[0x05] = [&]() { return decHigh(bc_); };
   opcodes_[0x15] = [&]() { return decHigh(de_); };
   opcodes_[0x25] = [&]() { return decHigh(hl_); };
-  // DEC (HL
+  opcodes_[0x35] = [&]() { Byte byte = memory_.read(hl_); int reg = 0; bits::setLow(reg, byte); decLow(reg); byte = bits::low(reg); memory_.write(hl_, byte); return 12; };
 
   opcodes_[0x06] = [&]() { return load8DataHigh(bc_); };
   opcodes_[0x16] = [&]() { return load8DataHigh(de_); };
   opcodes_[0x26] = [&]() { return load8DataHigh(hl_); };
   opcodes_[0x36] = [&]() { memory_.write(hl_, memory_.read(pc_++)); return 12; };
 
-  // RLCA
-  opcodes_[0x17] = [&]() { return rotateLeftCarryHigh(af_); };
-  // DAA
-  // SCF
+  opcodes_[0x07] = [&]() { rotateLeftHigh(af_); zero_ = false; return 4; };
+  opcodes_[0x17] = [&]() { rotateLeftCarryHigh(af_); zero_ = false; return 4; };
+  opcodes_[0x27] = [&]() { daa(); return 4; };
+  opcodes_[0x37] = [&]() { add_ = false; half_carry_ = false; carry_ = true; return 4; };
 
-  // LD
+  opcodes_[0x08] = [&]() { Byte low = memory_.read(pc_++); Byte high = memory_.read(pc_++); int address = bits::assemble(high, low); memory_.write(++address, bits::low(sp_)); memory_.write(++address, bits::high(sp_)); return 20; };
   opcodes_[0x18] = [&]() { return jumpRelative8Data(true); };
   opcodes_[0x28] = [&]() { return jumpRelative8Data(zero_); };
   opcodes_[0x38] = [&]() { return jumpRelative8Data(carry_); };
@@ -224,8 +227,8 @@ void CPU::setupOpcodes() {
 
   // RRCA
   // RRA
-  // CPL
-  // CCF
+  opcodes_[0x2F] = [&]() { add_ = true; half_carry_ = true; bits::setHigh(af_, ~bits::high(af_)); return 4; };
+  opcodes_[0x3F] = [&]() { add_ = false; half_carry_ = false; carry_ = !carry_; return 4; };
 
   opcodes_[0x40] = [&]() { return load8High(bc_, bits::high(bc_)); };
   opcodes_[0x41] = [&]() { return load8High(bc_, bits::low(bc_)); };
@@ -285,6 +288,8 @@ void CPU::setupOpcodes() {
   opcodes_[0x74] = [&]() { return writeData(hl_, bits::high(hl_)); };
   opcodes_[0x75] = [&]() { return writeData(hl_, bits::low(hl_)); };
 
+  opcodes_[0x76] = [&]() { return halt_ = true; return 4; }
+
   opcodes_[0x77] = [&]() { return writeData(hl_, bits::high(af_)); };
 
   opcodes_[0x78] = [&]() { return load8High(af_, bits::high(bc_)); };
@@ -296,6 +301,23 @@ void CPU::setupOpcodes() {
   opcodes_[0x7E] = [&]() { return load8High(af_, memory_.read(hl_)) + 4; };
   opcodes_[0x7F] = [&]() { return load8High(af_, bits::high(af_)); };
 
+  // ADD
+  
+  // ADC
+  
+  // SUB
+  
+  // SBC
+  
+  opcodes_[0xA0] = [&]() { return handleAnd(bits::high(bc_)); };
+  opcodes_[0xA1] = [&]() { return handleAnd(bits::low(bc_)); };
+  opcodes_[0xA2] = [&]() { return handleAnd(bits::high(de_)); };
+  opcodes_[0xA3] = [&]() { return handleAnd(bits::low(de_)); };
+  opcodes_[0xA4] = [&]() { return handleAnd(bits::high(hl_)); };
+  opcodes_[0xA5] = [&]() { return handleAnd(bits::low(hl_)); };
+  opcodes_[0xA6] = [&]() { return handleAnd(memory_.read(hl_)) + 4; };
+  opcodes_[0xA7] = [&]() { return handleAnd(bits::high(af_)); };
+
   opcodes_[0xA8] = [&]() { return handleXor(bits::high(bc_)); };
   opcodes_[0xA9] = [&]() { return handleXor(bits::low(bc_)); };
   opcodes_[0xAA] = [&]() { return handleXor(bits::high(de_)); };
@@ -305,6 +327,15 @@ void CPU::setupOpcodes() {
   opcodes_[0xAE] = [&]() { return handleXor(memory_.read(hl_)) + 4; };
   opcodes_[0xAF] = [&]() { return handleXor(bits::high(af_)); };
 
+  opcodes_[0xB0] = [&]() { return handleOr(bits::high(bc_)); };
+  opcodes_[0xB1] = [&]() { return handleOr(bits::low(bc_)); };
+  opcodes_[0xB2] = [&]() { return handleOr(bits::high(de_)); };
+  opcodes_[0xB3] = [&]() { return handleOr(bits::low(de_)); };
+  opcodes_[0xB4] = [&]() { return handleOr(bits::high(hl_)); };
+  opcodes_[0xB5] = [&]() { return handleOr(bits::low(hl_)); };
+  opcodes_[0xB6] = [&]() { return handleOr(memory_.read(hl_)) + 4; };
+  opcodes_[0xB7] = [&]() { return handleOr(bits::high(af_)); };
+  
   opcodes_[0xB8] = [&]() { return compare(bits::high(bc_)); };
   opcodes_[0xB9] = [&]() { return compare(bits::low(bc_)); };
   opcodes_[0xBA] = [&]() { return compare(bits::high(de_)); };
@@ -324,15 +355,13 @@ void CPU::setupOpcodes() {
   opcodes_[0xE1] = [&]() { return pop(hl_); };
   opcodes_[0xF1] = [&]() { return pop(af_); };
 
-  // JP
-  // JP
+  opcodes_[0xC2] = [&]() { return jump16Data(!zero_); };
+  opcodes_[0xD2] = [&]() { return jump16Data(!carry_); };
   opcodes_[0xE2] = [&]() { return writeData(bits::low(bc_) + 0xFF00, bits::high(af_)); };
   opcodes_[0xF2] = [&]() { return load8High(af_, memory_.read(bits::low(bc_) + 0xFF00)) + 4; };
-  // LD
-  // LD
 
-  // JP
-  // DI
+  opcodes_[0xC3] = [&]() { return jump16Data(true); };
+  opcodes_[0xF3] = [&]() { interrupts_ = false; return 4; };
 
   opcodes_[0xC4] = [&]() { return call16Data(!zero_); };
   opcodes_[0xD4] = [&]() { return call16Data(!carry_); };
@@ -344,23 +373,26 @@ void CPU::setupOpcodes() {
 
   // ADD
   // SUB
-  // AND
-  // OR
+  opcodes_[0xE6] = [&]() { return handleAnd(memory_.read(pc_++)) + 4; };
+  opcodes_[0xF6] = [&]() { return handleOr(memory_.read(pc_++)) + 4; };
 
-  // RST
+  opcodes_[0xC7] = [&]() { return handleRst(0x00); };
+  opcodes_[0xD7] = [&]() { return handleRst(0x10); };
+  opcodes_[0xE7] = [&]() { return handleRst(0x20); };
+  opcodes_[0xF7] = [&]() { return handleRst(0x30); };
 
   opcodes_[0xC8] = [&]() { return ret(zero_); };
   opcodes_[0xD8] = [&]() { return ret(carry_); };
   opcodes_[0xE8] = [&]() { return add8Stack(); };
-  // LD
+  opcodes_[0xF8] = [&]() { int sp = sp_; add8Stack(); hl_ = sp_; sp_ = sp; return 12; };
 
   opcodes_[0xC9] = [&]() { ret(true); return 16; };
-  // RETI
-  // JP (HL)
-  // LD
+  opcodes_[0xD9] = [&]() { ret(true); interrupts_ = true; return 16; };
+  opcodes_[0xE9] = [&]() { pc_ = hl_; return 4; };
+  opcodes_[0xE9] = [&]() { sp_ = hl_; return 8; };
 
-  // JP
-  // JP
+  opcodes_[0xCA] = [&]() { return jump16Data(zero_); };
+  opcodes_[0xDA] = [&]() { return jump16Data(carry_); };
   opcodes_[0xEA] = [&]() { return write16DataAddress(); };
   opcodes_[0xFA] = [&]() { return load16DataAddress(); };
 
@@ -369,7 +401,7 @@ void CPU::setupOpcodes() {
     std::cout << "CBOP: " << prefix_opcode_description_[op] << " - 0x" << std::hex << (int)op << std::endl;
     return cb_opcodes_[op]();
   };
-  // EI
+  opcodes_[0xFB] = [&]() { interrupts_ = true; return 4; };
 
   opcodes_[0xCC] = [&]() { return call16Data(zero_); };
   opcodes_[0xDC] = [&]() { return call16Data(carry_); };
@@ -381,13 +413,26 @@ void CPU::setupOpcodes() {
   opcodes_[0xEE] = [&]() { return handleXor(memory_.read(pc_++)) + 4; };
   opcodes_[0xFE] = [&]() { return compare(memory_.read(pc_++)) + 4; };
   
-  // RST
+  opcodes_[0xCF] = [&]() { return handleRst(0x08); };
+  opcodes_[0xDF] = [&]() { return handleRst(0x18); };
+  opcodes_[0xEF] = [&]() { return handleRst(0x28); };
+  opcodes_[0xFF] = [&]() { return handleRst(0x38); };
 
   // clang-format on
 }
 
 void CPU::setupCbOpcodes() {
   // clang-format off
+  cb_opcodes_[0x00] = [&]() { return rotateLeftHigh(bc_); };
+  cb_opcodes_[0x01] = [&]() { return rotateLeftLow(bc_); };
+  cb_opcodes_[0x02] = [&]() { return rotateLeftHigh(de_); };
+  cb_opcodes_[0x03] = [&]() { return rotateLeftLow(de_); };
+  cb_opcodes_[0x04] = [&]() { return rotateLeftHigh(hl_); };
+  cb_opcodes_[0x05] = [&]() { return rotateLeftLow(hl_); };
+  cb_opcodes_[0x06] = [&]() { int address = 0; bits::setLow(address, memory_.read(hl_)); rotateLeftLow(address); memory_.write(hl_, bits::low(address)); return 16; };
+  cb_opcodes_[0x07] = [&]() { return rotateLeftHigh(af_); };
+
+  // RRC
 
   cb_opcodes_[0x10] = [&]() { return rotateLeftCarryHigh(bc_); };
   cb_opcodes_[0x11] = [&]() { return rotateLeftCarryLow(bc_); };
@@ -395,8 +440,32 @@ void CPU::setupCbOpcodes() {
   cb_opcodes_[0x13] = [&]() { return rotateLeftCarryLow(de_); };
   cb_opcodes_[0x14] = [&]() { return rotateLeftCarryHigh(hl_); };
   cb_opcodes_[0x15] = [&]() { return rotateLeftCarryLow(hl_); };
-  //cb_opcodes_[0x16] = [&]() { return rotateLeftCarryHigh(bc_); };
+  cb_opcodes_[0x16] = [&]() { int address = 0; bits::setLow(address, memory_.read(hl_)); rotateLeftCarryLow(address); memory_.write(hl_, bits::low(address)); return 16; };
   cb_opcodes_[0x17] = [&]() { return rotateLeftCarryHigh(af_); };
+
+  // RR
+
+  // SLA
+
+  // SRA
+
+  cb_opcodes_[0x30] = [&]() { return handleSwapHigh(bc_); };
+  cb_opcodes_[0x31] = [&]() { return handleSwapLow(bc_); };
+  cb_opcodes_[0x32] = [&]() { return handleSwapHigh(de_); };
+  cb_opcodes_[0x33] = [&]() { return handleSwapLow(de_); };
+  cb_opcodes_[0x34] = [&]() { return handleSwapHigh(hl_); };
+  cb_opcodes_[0x35] = [&]() { return handleSwapLow(hl_); };
+  cb_opcodes_[0x36] = [&]() { int address = 0; bits::setLow(address, memory_.read(hl_)); handleSwapLow(address); memory_.write(hl_, bits::low(address)); return 16; };
+  cb_opcodes_[0x37] = [&]() { return handleSwapHigh(af_); };
+
+  cb_opcodes_[0x38] = [&]() { return shiftRightLogicalHigh(bc_); };
+  cb_opcodes_[0x39] = [&]() { return shiftRightLogicalLow(bc_); };
+  cb_opcodes_[0x3A] = [&]() { return shiftRightLogicalHigh(de_); };
+  cb_opcodes_[0x3B] = [&]() { return shiftRightLogicalLow(de_); };
+  cb_opcodes_[0x3C] = [&]() { return shiftRightLogicalHigh(hl_); };
+  cb_opcodes_[0x3D] = [&]() { return shiftRightLogicalLow(hl_); };
+  cb_opcodes_[0x3E] = [&]() { int address = 0; bits::setLow(address, memory_.read(hl_)); shiftRightLogicalLow(address); memory_.write(hl_, bits::low(address)); return 16; };
+  cb_opcodes_[0x3F] = [&]() { return shiftRightLogicalHigh(af_); };
 
   for (int i = 0; i < 8; i++) {
     cb_opcodes_[0x40 + i * 8] = [i, this]() { return handleBit(i, bits::high(bc_)); };
@@ -436,6 +505,7 @@ void CPU::readInstruction() {
   std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
             << (int)op << std::endl;
   handleOpcode(op);
+  serializeFlags();
   printState();
 }
 
@@ -525,6 +595,19 @@ int CPU::jumpRelative8Data(bool jump) {
   }
 }
 
+int CPU::jump16Data(bool jump) {
+  Byte low = memory_.read(pc_++);
+  Byte high = memory_.read(pc_++);
+  int address = bits::assemble(high, low);
+
+  if (jump) {
+    pc_ = address;
+    return 16;
+  } else {
+    return 12;
+  }
+}
+
 int CPU::call16Data(bool jump) {
   Byte low = memory_.read(pc_++);
   Byte high = memory_.read(pc_++);
@@ -564,7 +647,6 @@ int CPU::incHigh(int& reg) {
   high &= 0xFF;
   zero_ = high == 0;
   bits::setHigh(reg, high);
-  serializeFlags();
 
   return 4;
 }
@@ -578,7 +660,6 @@ int CPU::incLow(int& reg) {
   low &= 0xFF;
   zero_ = low == 0;
   bits::setLow(reg, low);
-  serializeFlags();
 
   return 4;
 }
@@ -599,7 +680,6 @@ int CPU::decHigh(int& reg) {
   high &= 0xFF;
   zero_ = high == 0;
   bits::setHigh(reg, high);
-  serializeFlags();
 
   return 4;
 }
@@ -613,7 +693,6 @@ int CPU::decLow(int& reg) {
   low &= 0xFF;
   zero_ = low == 0;
   bits::setLow(reg, low);
-  serializeFlags();
 
   return 4;
 }
@@ -626,7 +705,17 @@ int CPU::compare(Byte byte) {
   // TODO
   zero_ = value == byte;
 
-  serializeFlags();
+  return 4;
+}
+
+int CPU::handleAnd(Byte byte) {
+  Byte high = bits::high(af_);
+  high &= byte;
+
+  zero_ = high == 0;
+  add_ = 0;
+  half_carry_ = 1;
+  carry_ = 0;
 
   return 4;
 }
@@ -636,19 +725,89 @@ int CPU::handleXor(Byte byte) {
   high ^= byte;
   bits::setHigh(af_, high);
   clearFlags();
-  if (high == 0) {
-    zero_ = true;
-  }
-  serializeFlags();
+  zero_ = high == 0;
 
   return 4;
+}
+
+int CPU::handleOr(Byte byte) {
+  Byte high = bits::high(af_);
+  high |= byte;
+
+  zero_ = high == 0;
+  add_ = 0;
+  half_carry_ = 0;
+  carry_ = 0;
+
+  return 4;
+}
+
+int CPU::shiftRightLogicalHigh(int& reg) {
+  Byte byte = bits::high(reg);
+
+  carry_ = byte & 1;
+  byte >>= 1;
+
+  zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
+
+  bits::setHigh(reg, byte);
+
+  return 8;
+}
+
+int CPU::shiftRightLogicalLow(int& reg) {
+  Byte byte = bits::low(reg);
+
+  carry_ = byte & 1;
+  byte >>= 1;
+
+  zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
+
+  bits::setLow(reg, byte);
+
+  return 8;
+}
+
+int CPU::handleSwapHigh(int &reg) {
+  Byte byte = bits::high(reg);
+  Byte temp = byte & 0x0F;
+  byte >>= 4;
+  byte |= (temp << 4);
+
+  zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
+  carry_ = false;
+
+  bits::setHigh(reg, byte);
+
+  return 8;
+}
+
+int CPU::handleSwapLow(int &reg) {
+  Byte byte = bits::low(reg);
+  Byte temp = byte & 0x0F;
+  byte >>= 4;
+  byte |= (temp << 4);
+
+  zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
+  carry_ = false;
+
+  bits::setLow(reg, byte);
+
+  return 8;
 }
 
 int CPU::handleBit(int bit, Byte byte) {
   zero_ = !bits::bit(byte, bit);
   add_ = false;
   half_carry_ = true;
-  serializeFlags();
 
   return 8;
 }
@@ -693,6 +852,13 @@ int CPU::handleSetMemory(int bit, int address) {
   return 16;
 }
 
+int CPU::handleRst(Byte offset) {
+  push(pc_);
+  pc_ = offset;
+
+  return 16;
+}
+
 int CPU::pop(int& reg) {
   Byte low = memory_.read(sp_++);
   Byte high = memory_.read(sp_++);
@@ -719,9 +885,38 @@ int CPU::add8Stack() {
 
   sp_ += byte;
   sp_ &= 0xFFFF;
-  serializeFlags();
 
   return 16;
+}
+
+int CPU::rotateLeftHigh(int& reg) {
+  Byte byte = bits::high(reg);
+  carry_ = bits::bit(byte, 7);
+  byte <<= 1;
+  if (carry_) {
+    byte |= 1;
+  }
+  zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
+  bits::setHigh(reg, byte);
+
+  return 8;
+}
+
+int CPU::rotateLeftLow(int& reg) {
+  Byte byte = bits::low(reg);
+  carry_ = bits::bit(byte, 7);
+  byte <<= 1;
+  if (carry_) {
+    byte |= 1;
+  }
+  zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
+  bits::setLow(reg, byte);
+
+  return 8;
 }
 
 int CPU::rotateLeftCarryHigh(int& reg) {
@@ -734,10 +929,10 @@ int CPU::rotateLeftCarryHigh(int& reg) {
   }
 
   zero_ = byte == 0;
+  add_ = false;
+  half_carry_ = false;
 
   bits::setHigh(reg, byte);
-
-  serializeFlags();
 
   return 8;
 }
@@ -755,8 +950,30 @@ int CPU::rotateLeftCarryLow(int& reg) {
 
   bits::setLow(reg, byte);
 
-  serializeFlags();
-
   return 8;
 }
+
+int CPU::daa() {
+  Byte byte = bits::high(af_);
+
+  Byte low = byte & 0x0F;
+  if (low > 9 || half_carry_) {
+    byte += 0x06;
+  }
+  half_carry_ = false;
+
+  Byte high = (byte & 0xF0) >> 4;
+  if (high > 9 || carry_) {
+    byte += 0x60;
+    carry_ = true;
+  } else {
+    carry_ = false;
+  }
+
+  if (byte == 0) zero_ = true;
+  bits::setHigh(af_, byte);
+
+  return 4;
+}
+
 }

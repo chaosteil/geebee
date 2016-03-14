@@ -49,6 +49,7 @@ class CPU {
   int load16DataAddress();
 
   int jumpRelative8Data(bool jump);
+  int jump16Data(bool jump);
   int call16Data(bool jump);
   int ret(bool jump);
 
@@ -62,7 +63,14 @@ class CPU {
 
   int compare(Byte byte);
 
+  int handleAnd(Byte byte);
   int handleXor(Byte byte);
+  int handleOr(Byte byte);
+
+  int shiftRightLogicalHigh(int& reg);
+  int shiftRightLogicalLow(int& reg);
+  int handleSwapHigh(int &reg);
+  int handleSwapLow(int &reg);
   int handleBit(int bit, Byte byte);
   int handleResHigh(int bit, int& reg);
   int handleResLow(int bit, int& reg);
@@ -71,13 +79,19 @@ class CPU {
   int handleSetLow(int bit, int& reg);
   int handleSetMemory(int bit, int address);
 
+  int handleRst(Byte offset);
+
   int pop(int& reg);
   int push(int reg);
 
   int add8Stack();
 
+  int rotateLeftHigh(int& reg);
+  int rotateLeftLow(int& reg);
   int rotateLeftCarryHigh(int& reg);
   int rotateLeftCarryLow(int& reg);
+
+  int daa();
 
   const Program& program_;
   Memory memory_;
@@ -91,8 +105,9 @@ class CPU {
   int hl_;
   int sp_;
   int pc_;
-  Byte interrupts_;
 
+  bool interrupts_;
+  bool halt_;
   bool zero_;
   bool add_;
   bool half_carry_;
