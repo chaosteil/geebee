@@ -175,10 +175,10 @@ void CPU::setupOpcodes() {
   opcodes_[0x21] = [&]() { return load16Data(h_, l_); };
   opcodes_[0x31] = [&]() { Byte high, low; load16Data(high, low); sp_ = bits::assemble(high, low); return 12; };
 
-  opcodes_[0x02] = [&]() { memory_.write(bc(), a_); return 8; };
-  opcodes_[0x12] = [&]() { memory_.write(de(), a_); return 8; };
-  opcodes_[0x22] = [&]() { memory_.write(hl(), a_); bits::inc(h_, l_); return 8; };
-  opcodes_[0x32] = [&]() { memory_.write(hl(), a_); bits::dec(h_, l_); return 8; };
+  opcodes_[0x02] = [&, bc]() { memory_.write(bc(), a_); return 8; };
+  opcodes_[0x12] = [&, de]() { memory_.write(de(), a_); return 8; };
+  opcodes_[0x22] = [&, hl]() { memory_.write(hl(), a_); bits::inc(h_, l_); return 8; };
+  opcodes_[0x32] = [&, hl]() { memory_.write(hl(), a_); bits::dec(h_, l_); return 8; };
 
   opcodes_[0x03] = [&]() { bits::inc(b_, c_); return 8; };
   opcodes_[0x13] = [&]() { bits::inc(d_, e_); return 8; };
@@ -188,17 +188,17 @@ void CPU::setupOpcodes() {
   opcodes_[0x04] = [&]() { return inc(b_); };
   opcodes_[0x14] = [&]() { return inc(d_); };
   opcodes_[0x24] = [&]() { return inc(h_); };
-  opcodes_[0x34] = [&]() { Byte byte = memory_.read(hl()); inc(byte); memory_.write(hl(), byte); return 12; };
+  opcodes_[0x34] = [&, hl]() { Byte byte = memory_.read(hl()); inc(byte); memory_.write(hl(), byte); return 12; };
   
   opcodes_[0x05] = [&]() { return dec(b_); };
   opcodes_[0x15] = [&]() { return dec(d_); };
   opcodes_[0x25] = [&]() { return dec(h_); };
-  opcodes_[0x35] = [&]() { Byte byte = memory_.read(hl()); dec(byte); memory_.write(hl(), byte); return 12; };
+  opcodes_[0x35] = [&, hl]() { Byte byte = memory_.read(hl()); dec(byte); memory_.write(hl(), byte); return 12; };
 
   opcodes_[0x06] = [&]() { b_ = memory_.read(pc_++); return 8; };
   opcodes_[0x16] = [&]() { d_ = memory_.read(pc_++); return 8; };
   opcodes_[0x26] = [&]() { h_ = memory_.read(pc_++); return 8; };
-  opcodes_[0x36] = [&]() { memory_.write(hl(), memory_.read(pc_++)); return 12; };
+  opcodes_[0x36] = [&, hl]() { memory_.write(hl(), memory_.read(pc_++)); return 12; };
 
   opcodes_[0x07] = [&]() { rotateLeft(a_); zero_ = false; return 4; };
   opcodes_[0x17] = [&]() { rotateLeftCarry(a_); zero_ = false; return 4; };
@@ -212,10 +212,10 @@ void CPU::setupOpcodes() {
   
   // ADD
 
-  opcodes_[0x0A] = [&]() { a_ = memory_.read(bc()); return 8; };
-  opcodes_[0x1A] = [&]() { a_ = memory_.read(de()); return 8; };
-  opcodes_[0x2A] = [&]() { a_ = memory_.read(hl()); bits::inc(h_, l_); return 8; };
-  opcodes_[0x3A] = [&]() { a_ = memory_.read(hl()); bits::dec(h_, l_); return 8; };
+  opcodes_[0x0A] = [&, bc]() { a_ = memory_.read(bc()); return 8; };
+  opcodes_[0x1A] = [&, de]() { a_ = memory_.read(de()); return 8; };
+  opcodes_[0x2A] = [&, hl]() { a_ = memory_.read(hl()); bits::inc(h_, l_); return 8; };
+  opcodes_[0x3A] = [&, hl]() { a_ = memory_.read(hl()); bits::dec(h_, l_); return 8; };
 
   opcodes_[0x0B] = [&]() { bits::dec(b_, c_); return 8; };
   opcodes_[0x1B] = [&]() { bits::dec(d_, e_); return 8; };
@@ -248,7 +248,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x43] = [&]() { b_ = e_; return 4; };
   opcodes_[0x44] = [&]() { b_ = h_; return 4; };
   opcodes_[0x45] = [&]() { b_ = l_; return 4; };
-  opcodes_[0x46] = [&]() { b_ = memory_.read(hl()); return 8; };
+  opcodes_[0x46] = [&, hl]() { b_ = memory_.read(hl()); return 8; };
   opcodes_[0x47] = [&]() { b_ = a_; return 4; };
   opcodes_[0x48] = [&]() { c_ = b_; return 4; };
   opcodes_[0x49] = [&]() { c_ = c_; return 4; };
@@ -256,7 +256,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x4B] = [&]() { c_ = e_; return 4; };
   opcodes_[0x4C] = [&]() { c_ = h_; return 4; };
   opcodes_[0x4D] = [&]() { c_ = l_; return 4; };
-  opcodes_[0x4E] = [&]() { c_ = memory_.read(hl()); return 8; };
+  opcodes_[0x4E] = [&, hl]() { c_ = memory_.read(hl()); return 8; };
   opcodes_[0x4F] = [&]() { c_ = a_; return 4; };
 
   opcodes_[0x50] = [&]() { d_ = b_; return 4; };
@@ -265,7 +265,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x53] = [&]() { d_ = e_; return 4; };
   opcodes_[0x54] = [&]() { d_ = h_; return 4; };
   opcodes_[0x55] = [&]() { d_ = l_; return 4; };
-  opcodes_[0x56] = [&]() { d_ = memory_.read(hl()); return 8; };
+  opcodes_[0x56] = [&, hl]() { d_ = memory_.read(hl()); return 8; };
   opcodes_[0x57] = [&]() { d_ = a_; return 4; };
   opcodes_[0x58] = [&]() { e_ = b_; return 4; };
   opcodes_[0x59] = [&]() { e_ = c_; return 4; };
@@ -273,7 +273,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x5B] = [&]() { e_ = e_; return 4; };
   opcodes_[0x5C] = [&]() { e_ = h_; return 4; };
   opcodes_[0x5D] = [&]() { e_ = l_; return 4; };
-  opcodes_[0x5E] = [&]() { e_ = memory_.read(hl()); return 8; };
+  opcodes_[0x5E] = [&, hl]() { e_ = memory_.read(hl()); return 8; };
   opcodes_[0x5F] = [&]() { e_ = a_; return 4; };
 
   opcodes_[0x60] = [&]() { h_ = b_; return 4; };
@@ -282,7 +282,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x63] = [&]() { h_ = e_; return 4; };
   opcodes_[0x64] = [&]() { h_ = h_; return 4; };
   opcodes_[0x65] = [&]() { h_ = l_; return 4; };
-  opcodes_[0x66] = [&]() { h_ = memory_.read(hl()); return 8; };
+  opcodes_[0x66] = [&, hl]() { h_ = memory_.read(hl()); return 8; };
   opcodes_[0x67] = [&]() { h_ = a_; return 4; };
   opcodes_[0x68] = [&]() { l_ = b_; return 4; };
   opcodes_[0x69] = [&]() { l_ = c_; return 4; };
@@ -290,19 +290,19 @@ void CPU::setupOpcodes() {
   opcodes_[0x6B] = [&]() { l_ = e_; return 4; };
   opcodes_[0x6C] = [&]() { l_ = h_; return 4; };
   opcodes_[0x6D] = [&]() { l_ = l_; return 4; };
-  opcodes_[0x6E] = [&]() { l_ = memory_.read(hl()); return 8; };
+  opcodes_[0x6E] = [&, hl]() { l_ = memory_.read(hl()); return 8; };
   opcodes_[0x6F] = [&]() { l_ = a_; return 4; };
 
-  opcodes_[0x70] = [&]() { memory_.write(hl(), b_); return 8; };
-  opcodes_[0x71] = [&]() { memory_.write(hl(), c_); return 8; };
-  opcodes_[0x72] = [&]() { memory_.write(hl(), d_); return 8; };
-  opcodes_[0x73] = [&]() { memory_.write(hl(), e_); return 8; };
-  opcodes_[0x74] = [&]() { memory_.write(hl(), h_); return 8; };
-  opcodes_[0x75] = [&]() { memory_.write(hl(), l_); return 8; };
+  opcodes_[0x70] = [&, hl]() { memory_.write(hl(), b_); return 8; };
+  opcodes_[0x71] = [&, hl]() { memory_.write(hl(), c_); return 8; };
+  opcodes_[0x72] = [&, hl]() { memory_.write(hl(), d_); return 8; };
+  opcodes_[0x73] = [&, hl]() { memory_.write(hl(), e_); return 8; };
+  opcodes_[0x74] = [&, hl]() { memory_.write(hl(), h_); return 8; };
+  opcodes_[0x75] = [&, hl]() { memory_.write(hl(), l_); return 8; };
 
   opcodes_[0x76] = [&]() { halt_ = true; return 4; };
 
-  opcodes_[0x77] = [&]() { memory_.write(hl(), a_); return 8; };
+  opcodes_[0x77] = [&, hl]() { memory_.write(hl(), a_); return 8; };
 
   opcodes_[0x78] = [&]() { a_ = b_; return 4; };
   opcodes_[0x79] = [&]() { a_ = c_; return 4; };
@@ -310,7 +310,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x7B] = [&]() { a_ = e_; return 4; };
   opcodes_[0x7C] = [&]() { a_ = h_; return 4; };
   opcodes_[0x7D] = [&]() { a_ = l_; return 4; };
-  opcodes_[0x7E] = [&]() { a_ = memory_.read(hl()); return 8; };
+  opcodes_[0x7E] = [&, hl]() { a_ = memory_.read(hl()); return 8; };
   opcodes_[0x7F] = [&]() { a_ = a_; return 4; };
 
   // ADD
@@ -327,7 +327,7 @@ void CPU::setupOpcodes() {
   opcodes_[0xA3] = [&]() { return handleAnd(e_); };
   opcodes_[0xA4] = [&]() { return handleAnd(h_); };
   opcodes_[0xA5] = [&]() { return handleAnd(l_); };
-  opcodes_[0xA6] = [&]() { return handleAnd(memory_.read(hl())) + 4; };
+  opcodes_[0xA6] = [&, hl]() { return handleAnd(memory_.read(hl())) + 4; };
   opcodes_[0xA7] = [&]() { return handleAnd(a_); };
 
   opcodes_[0xA8] = [&]() { return handleXor(b_); };
@@ -336,7 +336,7 @@ void CPU::setupOpcodes() {
   opcodes_[0xAB] = [&]() { return handleXor(e_); };
   opcodes_[0xAC] = [&]() { return handleXor(h_); };
   opcodes_[0xAD] = [&]() { return handleXor(l_); };
-  opcodes_[0xAE] = [&]() { return handleXor(memory_.read(hl())) + 4; };
+  opcodes_[0xAE] = [&, hl]() { return handleXor(memory_.read(hl())) + 4; };
   opcodes_[0xAF] = [&]() { return handleXor(a_); };
 
   opcodes_[0xB0] = [&]() { return handleOr(b_); };
@@ -345,7 +345,7 @@ void CPU::setupOpcodes() {
   opcodes_[0xB3] = [&]() { return handleOr(e_); };
   opcodes_[0xB4] = [&]() { return handleOr(h_); };
   opcodes_[0xB5] = [&]() { return handleOr(l_); };
-  opcodes_[0xB6] = [&]() { return handleOr(memory_.read(hl())) + 4; };
+  opcodes_[0xB6] = [&, hl]() { return handleOr(memory_.read(hl())) + 4; };
   opcodes_[0xB7] = [&]() { return handleOr(a_); };
   
   opcodes_[0xB8] = [&]() { return compare(b_); };
@@ -354,7 +354,7 @@ void CPU::setupOpcodes() {
   opcodes_[0xBB] = [&]() { return compare(e_); };
   opcodes_[0xBC] = [&]() { return compare(h_); };
   opcodes_[0xBD] = [&]() { return compare(l_); };
-  opcodes_[0xBE] = [&]() { return compare(memory_.read(hl())) + 4; };
+  opcodes_[0xBE] = [&, hl]() { return compare(memory_.read(hl())) + 4; };
   opcodes_[0xBF] = [&]() { return compare(a_); };
 
   opcodes_[0xC0] = [&]() { return ret(!zero_); };
@@ -400,8 +400,8 @@ void CPU::setupOpcodes() {
 
   opcodes_[0xC9] = [&]() { ret(true); return 16; };
   opcodes_[0xD9] = [&]() { ret(true); interrupts_ = true; return 16; };
-  opcodes_[0xE9] = [&]() { pc_ = hl(); return 4; };
-  opcodes_[0xE9] = [&]() { sp_ = hl(); return 8; };
+  opcodes_[0xE9] = [&, hl]() { pc_ = hl(); return 4; };
+  opcodes_[0xE9] = [&, hl]() { sp_ = hl(); return 8; };
 
   opcodes_[0xCA] = [&]() { return jump16Data(zero_); };
   opcodes_[0xDA] = [&]() { return jump16Data(carry_); };
@@ -446,7 +446,7 @@ void CPU::setupCbOpcodes() {
   cb_opcodes_[0x03] = [&]() { return rotateLeft(e_); };
   cb_opcodes_[0x04] = [&]() { return rotateLeft(h_); };
   cb_opcodes_[0x05] = [&]() { return rotateLeft(l_); };
-  cb_opcodes_[0x06] = [&]() { Byte byte = memory_.read(hl()); rotateLeft(byte); memory_.write(hl(), byte); return 16; };
+  cb_opcodes_[0x06] = [&, hl]() { Byte byte = memory_.read(hl()); rotateLeft(byte); memory_.write(hl(), byte); return 16; };
   cb_opcodes_[0x07] = [&]() { return rotateLeft(a_); };
 
   // RRC
@@ -457,7 +457,7 @@ void CPU::setupCbOpcodes() {
   cb_opcodes_[0x13] = [&]() { return rotateLeftCarry(e_); };
   cb_opcodes_[0x14] = [&]() { return rotateLeftCarry(h_); };
   cb_opcodes_[0x15] = [&]() { return rotateLeftCarry(l_); };
-  cb_opcodes_[0x16] = [&]() { Byte byte = memory_.read(hl()); rotateLeftCarry(byte); memory_.write(hl(), byte); return 16; };
+  cb_opcodes_[0x16] = [&, hl]() { Byte byte = memory_.read(hl()); rotateLeftCarry(byte); memory_.write(hl(), byte); return 16; };
   cb_opcodes_[0x17] = [&]() { return rotateLeftCarry(a_); };
 
   // RR
@@ -472,7 +472,7 @@ void CPU::setupCbOpcodes() {
   cb_opcodes_[0x33] = [&]() { return handleSwap(e_); };
   cb_opcodes_[0x34] = [&]() { return handleSwap(h_); };
   cb_opcodes_[0x35] = [&]() { return handleSwap(l_); };
-  cb_opcodes_[0x36] = [&]() { Byte byte = memory_.read(hl()); handleSwap(byte); memory_.write(hl(), byte); return 16; };
+  cb_opcodes_[0x36] = [&, hl]() { Byte byte = memory_.read(hl()); handleSwap(byte); memory_.write(hl(), byte); return 16; };
   cb_opcodes_[0x37] = [&]() { return handleSwap(a_); };
 
   cb_opcodes_[0x38] = [&]() { return shiftRightLogical(b_); };
@@ -481,7 +481,7 @@ void CPU::setupCbOpcodes() {
   cb_opcodes_[0x3B] = [&]() { return shiftRightLogical(e_); };
   cb_opcodes_[0x3C] = [&]() { return shiftRightLogical(h_); };
   cb_opcodes_[0x3D] = [&]() { return shiftRightLogical(l_); };
-  cb_opcodes_[0x3E] = [&]() { Byte byte = memory_.read(hl()); shiftRightLogical(byte); memory_.write(hl(), byte); return 16; };
+  cb_opcodes_[0x3E] = [&, hl]() { Byte byte = memory_.read(hl()); shiftRightLogical(byte); memory_.write(hl(), byte); return 16; };
   cb_opcodes_[0x3F] = [&]() { return shiftRightLogical(a_); };
 
   for (int i = 0; i < 8; i++) {
@@ -491,7 +491,7 @@ void CPU::setupCbOpcodes() {
     cb_opcodes_[0x43 + i * 8] = [i, this]() { return handleBit(i, e_); };
     cb_opcodes_[0x44 + i * 8] = [i, this]() { return handleBit(i, h_); };
     cb_opcodes_[0x45 + i * 8] = [i, this]() { return handleBit(i, l_); };
-    cb_opcodes_[0x46 + i * 8] = [&hl, i, this]() { return handleBit(i, memory_.read(hl())) + 8; };
+    cb_opcodes_[0x46 + i * 8] = [hl, i, this]() { return handleBit(i, memory_.read(hl())) + 8; };
     cb_opcodes_[0x47 + i * 8] = [i, this]() { return handleBit(i, a_); };
   }
   for (int i = 0; i < 8; i++) {
@@ -501,7 +501,7 @@ void CPU::setupCbOpcodes() {
     cb_opcodes_[0x83 + i * 8] = [i, this]() { return handleRes(i, e_); };
     cb_opcodes_[0x84 + i * 8] = [i, this]() { return handleRes(i, h_); };
     cb_opcodes_[0x85 + i * 8] = [i, this]() { return handleRes(i, l_); };
-    cb_opcodes_[0x86 + i * 8] = [&hl, i, this]() { Byte byte = memory_.read(hl()); handleRes(i, byte); memory_.write(hl(), byte); return 16; };
+    cb_opcodes_[0x86 + i * 8] = [hl, i, this]() { Byte byte = memory_.read(hl()); handleRes(i, byte); memory_.write(hl(), byte); return 16; };
     cb_opcodes_[0x87 + i * 8] = [i, this]() { return handleRes(i, a_); };
   }
   for (int i = 0; i < 8; i++) {
@@ -511,7 +511,7 @@ void CPU::setupCbOpcodes() {
     cb_opcodes_[0xC3 + i * 8] = [i, this]() { return handleSet(i, e_); };
     cb_opcodes_[0xC4 + i * 8] = [i, this]() { return handleSet(i, h_); };
     cb_opcodes_[0xC5 + i * 8] = [i, this]() { return handleSet(i, l_); };
-    cb_opcodes_[0xC6 + i * 8] = [&hl, i, this]() { Byte byte = memory_.read(hl()); handleSet(i, byte); memory_.write(hl(), byte); return 16; };
+    cb_opcodes_[0xC6 + i * 8] = [hl, i, this]() { Byte byte = memory_.read(hl()); handleSet(i, byte); memory_.write(hl(), byte); return 16; };
     cb_opcodes_[0xC7 + i * 8] = [i, this]() { return handleSet(i, a_); };
   }
   // clang-format on
