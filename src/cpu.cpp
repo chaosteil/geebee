@@ -210,9 +210,9 @@ void CPU::setupOpcodes() {
   opcodes_[0x28] = [&]() { return jumpRelative8Data(zero_); };
   opcodes_[0x38] = [&]() { return jumpRelative8Data(carry_); };
   
-  opcodes_[0x09] = [&]() { return addHl(bc()); };
-  opcodes_[0x19] = [&]() { return addHl(de()); };
-  opcodes_[0x29] = [&]() { return addHl(hl()); };
+  opcodes_[0x09] = [&, bc]() { return addHl(bc()); };
+  opcodes_[0x19] = [&, de]() { return addHl(de()); };
+  opcodes_[0x29] = [&, hl]() { return addHl(hl()); };
   opcodes_[0x39] = [&]() { return addHl(sp_); };
 
   opcodes_[0x0A] = [&, bc]() { a_ = memory_.read(bc()); return 8; };
