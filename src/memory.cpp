@@ -79,7 +79,7 @@ Byte Memory::read(int address) const {
   } else if (in(address, 0xFF00, 0xFF7F)) {
     if (address == 0xFF44) {
       drawable_ = true;
-      // return 0x90;
+       return 0x90;
     }
     return io_[address - 0xFF00];
 
@@ -163,7 +163,7 @@ void Memory::write(int address, Byte byte) {
 
     // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
-    throw std::runtime_error("Writing Interrupt Enable Register");
+    //throw std::runtime_error("Writing Interrupt Enable Register");
 
   } else {
     throw std::runtime_error("Completely invalid address " +

@@ -48,6 +48,9 @@ class CPU {
 
   int inc(Byte& byte);
   int dec(Byte& byte);
+  int addHl(Word word);
+  int add(Byte byte);
+  int sub(Byte byte);
 
   int compare(Byte byte);
 
@@ -55,7 +58,6 @@ class CPU {
   int handleXor(Byte byte);
   int handleOr(Byte byte);
 
-  int shiftRightLogical(Byte& byte);
   int handleSwap(Byte& byte);
   int handleBit(int bit, Byte byte);
   int handleRes(int bit, Byte& byte);
@@ -70,6 +72,11 @@ class CPU {
 
   int rotateLeft(Byte& byte);
   int rotateLeftCarry(Byte& byte);
+  int rotateRight(Byte& byte);
+  int rotateRightCarry(Byte& byte);
+  int shiftLeftLogical(Byte& byte);
+  int shiftRightLogical(Byte& byte);
+  int shiftRight(Byte& byte);
 
   int daa();
 
@@ -88,8 +95,8 @@ class CPU {
   Byte h_;
   Byte l_;
 
-  int sp_;
-  int pc_;
+  Word sp_;
+  Word pc_;
 
   bool interrupts_;
   bool halt_;

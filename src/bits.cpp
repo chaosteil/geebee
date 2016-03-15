@@ -3,7 +3,7 @@
 namespace gb {
 namespace bits {
 
-Bytes toBytes(int value) {
+Bytes toBytes(Word value) {
   Bytes data(2, 0);
 
   data[0] = high(value);
@@ -12,53 +12,53 @@ Bytes toBytes(int value) {
   return data;
 }
 
-int assemble(Byte high, Byte low) { return low + high * 0x100; }
+Word assemble(Byte high, Byte low) { return low + high * 0x100; }
 
-int toValue(const Bytes& data, int offset) {
+Word toValue(const Bytes& data, int offset) {
   return assemble(data[offset + 1], data[offset]);
 }
 
-void write(Bytes& bytes, int value, int offset) {
+void write(Bytes& bytes, Word value, int offset) {
   bytes[offset] = high(value);
   bytes[offset + 1] = low(value);
 }
 
-bool bit(int value, int bit) { return (value >> bit) & 1; }
+bool bit(Word value, int bit) { return (value >> bit) & 1; }
 
-bool highBit(int value, int bit_) { return bit(value, bit_ + 8); }
+bool highBit(Word value, int bit_) { return bit(value, bit_ + 8); }
 
-bool lowBit(int value, int bit_) { return bit(value, bit_); }
+bool lowBit(Word value, int bit_) { return bit(value, bit_); }
 
-Byte high(int value) { return (value >> 8) & 0xFF; }
+Byte high(Word value) { return (value >> 8) & 0xFF; }
 
-Byte low(int value) { return (value)&0xFF; }
+Byte low(Word value) { return (value)&0xFF; }
 
 void setBit(Byte& value, int bit, bool flag) {
   value ^= (-flag ^ value) & (1 << bit);
 }
 
-void setBit(int& value, int bit, bool flag) {
+void setBit(Word& value, int bit, bool flag) {
   value ^= (-flag ^ value) & (1 << bit);
 }
 
-void setHighBit(int& value, int bit, bool flag) {
+void setHighBit(Word& value, int bit, bool flag) {
   setBit(value, bit + 8, flag);
 }
 
-void setLowBit(int& value, int bit, bool flag) { setBit(value, bit, flag); }
+void setLowBit(Word& value, int bit, bool flag) { setBit(value, bit, flag); }
 
-void setHigh(int& value, Byte high) {
+void setHigh(Word& value, Byte high) {
   value &= 0xFF;
-  value |= (int)(high) << 8;
+  value |= (Word)(high) << 8;
 }
 
-void setLow(int& value, Byte low) {
+void setLow(Word& value, Byte low) {
   value &= 0xFF00;
   value |= low;
 }
 
-int inc(Byte& high, Byte& low) {
-  int value = bits::assemble(high, low);
+Word inc(Byte& high, Byte& low) {
+  Word value = bits::assemble(high, low);
   value++;
   value &= 0xFFFF;
   high = bits::high(value);
@@ -67,8 +67,8 @@ int inc(Byte& high, Byte& low) {
   return value;
 }
 
-int dec(Byte& high, Byte& low) {
-  int value = bits::assemble(high, low);
+Word dec(Byte& high, Byte& low) {
+  Word value = bits::assemble(high, low);
   value--;
   value &= 0xFFFF;
   high = bits::high(value);
