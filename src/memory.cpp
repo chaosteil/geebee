@@ -20,38 +20,51 @@ void Memory::reset() {
 }
 
 Byte Memory::read(int address) const {
-  // 16kB ROM Bank 00
-  if (in(address, 0x0000, 0x3FFF)) {
-    // Bootrom
-    if (booting_ && in(address, 0x0000, 0x0100)) {
-      return program_.bootrom()[address];
-    }
-
-    std::cout << "ROM: " << (int)program_.rom()[address] << std::endl;
-    return program_.rom()[address];
+  switch (address & 0xF000) {
+    // 16kB ROM Bank 00
+    case 0x0000:
+    case 0x1000:
+    case 0x2000:
+    case 0x3000:
+      if (booting_ && in(address, 0x0000, 0x0100)) {
+        return program_.bootrom()[address];
+      }
+      return program_.rom()[address];
 
     // 16kB ROM Bank 01..NN
-  } else if (in(address, 0x4000, 0x7FFF)) {
-    return program_.rom()[address];
+    case 0x4000:
+    case 0x5000:
+    case 0x6000:
+    case 0x7000:
+      return program_.rom()[address];
 
-    // 8kB Video RAM (VRAM)
-  } else if (in(address, 0x8000, 0x9FFF)) {
-    return vram_[address - 0x8000];
+    // 8kB VRAM
+    case 0x8000:
+    case 0x9000:
+      return vram_[address - 0x8000];
 
-    // 8kB External RAM
-  } else if (in(address, 0xA000, 0xBFFF)) {
-    throw std::runtime_error("Reading External RAM");
+    // 8kB ERAM
+    case 0xA000:
+    case 0xB000:
+      throw std::runtime_error("Reading External RAM");
 
     // 4KB Work RAM Bank 0 (WRAM)
-  } else if (in(address, 0xC000, 0xCFFF)) {
-    return ram_[address - 0xC000];
+    case 0xC000:
+      return ram_[address - 0xC000];
 
-    // 4KB Work RAM Bank 1 (WRAM)
-  } else if (in(address, 0xD000, 0xDFFF)) {
-    return ram_[address - 0xC000];
+    // 4KB Work RAM Bank 0 (WRAM)
+    case 0xD000:
+      return ram_[address - 0xC000];
 
-    // Same as C000-DDFF (ECHO)
-  } else if (in(address, 0xE000, 0xFDFF)) {
+    case 0xE000:
+      return ram_[address - 0xC000];
+
+    default:
+      break;
+  };
+
+  // Same as C000-DDFF (ECHO)
+  if (in(address, 0xE000, 0xFDFF)) {
     return ram_[address - 0xC000];
 
     // Sprite Attribute Table (OAM)
@@ -85,30 +98,46 @@ Byte Memory::read(int address) const {
 }
 
 void Memory::write(int address, Byte byte) {
-  // 32kB ROM
-  if (in(address, 0x0000, 0x7FFF)) {
-    throw std::runtime_error("Writing ROM");
+  switch (address & 0xF000) {
+    // 32kB ROM
+    case 0x0000:
+    case 0x1000:
+    case 0x2000:
+    case 0x3000:
+    case 0x4000:
+    case 0x5000:
+    case 0x6000:
+    case 0x7000:
+      throw std::runtime_error("Writing ROM");
 
     // 8kB Video RAM (VRAM)
-  } else if (in(address, 0x8000, 0x9FFF)) {
-    std::cout << "VRAM WRITE: " << std::hex << (int)address << " " << (int)byte
-              << std::endl;
-    vram_[address - 0x8000] = byte;
+    case 0x8000:
+    case 0x9000:
+      vram_[address - 0x8000] = byte; return;
 
     // 8kB External RAM
-  } else if (in(address, 0xA000, 0xBFFF)) {
-    throw std::runtime_error("Writing External RAM");
+    case 0xA000:
+    case 0xB000:
+      throw std::runtime_error("Writing External RAM");
 
     // 4KB Work RAM Bank 0 (WRAM)
-  } else if (in(address, 0xC000, 0xCFFF)) {
-    ram_[address - 0xC000] = byte;
+    case 0xC000:
+      ram_[address - 0xC000] = byte; return;
 
     // 4KB Work RAM Bank 1 (WRAM)
-  } else if (in(address, 0xD000, 0xDFFF)) {
-    ram_[address - 0xC000] = byte;
+    case 0xD000:
+      ram_[address - 0xC000] = byte; return;
 
     // Same as C000-DDFF (ECHO)
-  } else if (in(address, 0xE000, 0xFDFF)) {
+    case 0xE000:
+      ram_[address - 0xC000] = byte; return;
+
+    default:
+      break;
+  };
+
+  // Same as C000-DDFF (ECHO)
+  if (in(address, 0xE000, 0xFDFF)) {
     ram_[address - 0xC000] = byte;
 
     // Sprite Attribute Table (OAM)
