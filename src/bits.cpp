@@ -12,7 +12,7 @@ Bytes toBytes(Word value) {
   return data;
 }
 
-Word assemble(Byte high, Byte low) { return low + high * 0x100; }
+Word assemble(Byte high, Byte low) { return low | (high << 8); }
 
 Word toValue(const Bytes& data, int offset) {
   return assemble(data[offset + 1], data[offset]);

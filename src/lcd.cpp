@@ -16,6 +16,7 @@ LCD::LCD(Window& window) : window_(window) {
 }
 
 void LCD::draw(const Bytes& bytes) {
+  return;
   static std::array<int, 4> color_map = {255, 170, 85, 0};
 
   auto color = [](int bit, Byte top, Byte bottom) -> int {

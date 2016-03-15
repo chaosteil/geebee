@@ -35,6 +35,7 @@ class CPU {
   void handleOpcode(Byte op);
   void clearFlags();
   void serializeFlags();
+  void deserializeFlags();
 
   int load16Data(Byte& high, Byte& low);
 

@@ -396,7 +396,7 @@ void CPU::setupOpcodes() {
   opcodes_[0xC1] = [&]() { return pop(b_, c_); };
   opcodes_[0xD1] = [&]() { return pop(d_, e_); };
   opcodes_[0xE1] = [&]() { return pop(h_, l_); };
-  opcodes_[0xF1] = [&]() { return pop(a_, f_); };
+  opcodes_[0xF1] = [&]() { pop(a_, f_); deserializeFlags(); return 12; };
 
   opcodes_[0xC2] = [&]() { return jump16Data(!zero_); };
   opcodes_[0xD2] = [&]() { return jump16Data(!carry_); };
@@ -441,7 +441,7 @@ void CPU::setupOpcodes() {
 
   opcodes_[0xCB] = [&]() {
     Byte op = memory_.read(pc_++);
-    std::cout << "CBOP: " << prefix_opcode_description_[op] << " - 0x" << std::hex << (int)op << std::endl;
+    //std::cout << "CBOP: " << prefix_opcode_description_[op] << " - 0x" << std::hex << (int)op << std::endl;
     return cb_opcodes_[op]();
   };
   opcodes_[0xFB] = [&]() { interrupts_ = true; return 4; };
@@ -578,11 +578,11 @@ void CPU::setupCbOpcodes() {
 
 void CPU::readInstruction() {
   Byte op = memory_.read(pc_++);
-  std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
-            << (int)op << std::endl;
+  //std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
+            //<< (int)op << std::endl;
   handleOpcode(op);
   serializeFlags();
-  printState();
+  //printState();
 }
 
 void CPU::handleOpcode(Byte op) {
@@ -601,6 +601,17 @@ void CPU::serializeFlags() {
   bits::setBit(f_, 6, add_);
   bits::setBit(f_, 5, half_carry_);
   bits::setBit(f_, 4, carry_);
+
+  f_ &= 0xF0;
+}
+
+void CPU::deserializeFlags() {
+  zero_ = bits::bit(f_, 7);
+  add_ = bits::bit(f_, 6);
+  half_carry_ = bits::bit(f_, 5);
+  carry_ = bits::bit(f_, 4);
+
+  f_ &= 0xF0;
 }
 
 int CPU::load16Data(Byte& high, Byte& low) {
@@ -631,9 +642,13 @@ int CPU::load16DataAddress() {
 }
 
 int CPU::jumpRelative8Data(bool jump) {
+  Word prev = pc_;
   SByte address = memory_.read(pc_++);
   if (jump) {
     pc_ += address;
+    if (prev - 1 == pc_) {
+      throw int();
+    }
     return 12;
   } else {
     return 8;
@@ -683,7 +698,6 @@ int CPU::inc(Byte& byte) {
 
   half_carry_ = ((byte & 0x0F) == 0x0F);
   byte++;
-  byte &= 0xFF;
   zero_ = byte == 0;
 
   return 4;
@@ -694,7 +708,6 @@ int CPU::dec(Byte& byte) {
 
   half_carry_ = ((byte & 0x0F) == 0x00);
   byte--;
-  byte &= 0xFF;
   zero_ = byte == 0;
 
   return 4;
@@ -739,11 +752,9 @@ int CPU::sub(Byte byte) {
 }
 
 int CPU::compare(Byte byte) {
-  add_ = true;
-
-  carry_ = a_ < byte;
-  // TODO
-  zero_ = a_ == byte;
+  Byte a = a_;
+  sub(byte);
+  a_ = a;
 
   return 4;
 }
@@ -936,17 +947,14 @@ int CPU::shiftRight(Byte& byte) {
 
 int CPU::daa() {
   Byte low = a_ & 0x0F;
-  if (low > 9 || half_carry_) {
+  if (low >= 0x0A || half_carry_) {
     a_ += 0x06;
   }
-  half_carry_ = false;
 
-  Byte high = (a_ & 0xF0) >> 4;
-  if (high > 9 || carry_) {
+  Byte high = a_ & 0xF0;
+  if (high >= 0xA0 || carry_) {
     a_ += 0x60;
     carry_ = true;
-  } else {
-    carry_ = false;
   }
 
   zero_ = a_ == 0;

@@ -56,12 +56,12 @@ int main(int argc, const char** argv) {
 
   gb::CPU cpu(lcd, program);
   while (true) {
-    if (window.handleEvents()) {
-      break;
-    }
+    //if (window.handleEvents()) {
+      //break;
+    //}
     cpu.cycle();
-    if (cpu.memory().drawable()) lcd.draw(cpu.memory().vram());
-    window.draw();
+    //if (cpu.memory().drawable()) lcd.draw(cpu.memory().vram());
+    //window.draw();
   }
 
   return 0;
