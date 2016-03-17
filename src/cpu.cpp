@@ -113,7 +113,7 @@ const std::array<std::string, 0x100> CPU::prefix_opcode_description_{
     "SET 7,H",    "SET 7,L", "SET 7,(HL)", "SET 7,A"};
 
 CPU::CPU(LCD& lcd, const Program& program)
-    : program_(program), memory_(program) {
+    : program_(program), memory_(program), output_(false) {
   setupOpcodes();
   setupCbOpcodes();
   reset();
@@ -146,10 +146,10 @@ void CPU::cycle() {
 }
 
 void CPU::printState() {
-  std::cout << std::hex << "AF: " << (int)a_ << (int)f_ << " "
-            << "BC: " << (int)b_ << (int)c_ << " "
-            << "DE: " << (int)d_ << (int)e_ << " "
-            << "HL: " << (int)h_ << (int)l_ << " "
+  std::cout << std::hex << "AF: " << (int)a_ << " " << (int)f_ << " "
+            << "BC: " << (int)b_ << " " << (int)c_ << " "
+            << "DE: " << (int)d_ << " " << (int)e_ << " "
+            << "HL: " << (int)h_ << " " << (int)l_ << " "
             << "SP: " << (int)sp_ << " "
             << "PC: " << (int)pc_ << " " << std::dec
             << " F: " << (zero_ ? "Zero " : "") << (add_ ? "Add " : "")
@@ -414,8 +414,8 @@ void CPU::setupOpcodes() {
   opcodes_[0xE5] = [&]() { return push(h_, l_); };
   opcodes_[0xF5] = [&]() { return push(a_, f_); };
 
-  opcodes_[0xC6] = [&]() { return add(memory_.read(pc_++) + carry_ ? 1 : 0) + 4; };
-  opcodes_[0xD6] = [&]() { return sub(memory_.read(pc_++) + carry_ ? 1 : 0) + 4; };
+  opcodes_[0xC6] = [&]() { return add(memory_.read(pc_++)) + 4; };
+  opcodes_[0xD6] = [&]() { return sub(memory_.read(pc_++)) + 4; };
   opcodes_[0xE6] = [&]() { return handleAnd(memory_.read(pc_++)) + 4; };
   opcodes_[0xF6] = [&]() { return handleOr(memory_.read(pc_++)) + 4; };
 
@@ -441,7 +441,8 @@ void CPU::setupOpcodes() {
 
   opcodes_[0xCB] = [&]() {
     Byte op = memory_.read(pc_++);
-    //std::cout << "CBOP: " << prefix_opcode_description_[op] << " - 0x" << std::hex << (int)op << std::endl;
+    if (output_)
+      std::cout << "CBOP: " << prefix_opcode_description_[op] << " - 0x" << std::hex << (int)op << std::endl;
     return cb_opcodes_[op]();
   };
   opcodes_[0xFB] = [&]() { interrupts_ = true; return 4; };
@@ -578,11 +579,15 @@ void CPU::setupCbOpcodes() {
 
 void CPU::readInstruction() {
   Byte op = memory_.read(pc_++);
-  //std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
-            //<< (int)op << std::endl;
+  if (output_)
+    std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
+              << (int)op << std::endl;
+  if (output_)
+    printState();
   handleOpcode(op);
   serializeFlags();
-  //printState();
+  if (output_)
+    printState();
 }
 
 void CPU::handleOpcode(Byte op) {
@@ -946,18 +951,25 @@ int CPU::shiftRight(Byte& byte) {
 }
 
 int CPU::daa() {
-  Byte low = a_ & 0x0F;
-  if (low >= 0x0A || half_carry_) {
-    a_ += 0x06;
+  int a = a_;
+
+  if (!add_) {
+    if ((a & 0x0F) > 0x09 || half_carry_) a += 0x06;
+    if (a > 0x9F || carry_) a += 0x60;
+  } else {
+    if (half_carry_) a = (a - 0x06) & 0xFF;
+    if (carry_) a -= 0x60;
   }
 
-  Byte high = a_ & 0xF0;
-  if (high >= 0xA0 || carry_) {
-    a_ += 0x60;
+  half_carry_ = false;
+  if ((a & 0x100) == 0x100) {
     carry_ = true;
   }
 
-  zero_ = a_ == 0;
+  a &= 0xFF;
+  zero_ = a == 0;
+
+  a_ = a;
 
   return 4;
 }

@@ -105,6 +105,8 @@ class CPU {
   bool add_;
   bool half_carry_;
   bool carry_;
+
+  bool output_;
 };
 }
 
