@@ -18,13 +18,13 @@ Program::Program(const string& rom_filename, const string& bootrom_filename) {
   }
 
   {
-    ifstream rom_stream(rom_filename, ios::binary);
+    ifstream rom_stream{rom_filename, ios::binary};
     rom_.assign(istreambuf_iterator<char>(rom_stream),
                 istreambuf_iterator<char>());
   }
 
   if (fs::exists(bootrom_filename) && fs::is_regular_file(bootrom_filename)) {
-    ifstream bootrom_stream(bootrom_filename, ios::binary);
+    ifstream bootrom_stream{bootrom_filename, ios::binary};
     bootrom_.assign(istreambuf_iterator<char>(bootrom_stream),
                     istreambuf_iterator<char>());
   }
@@ -32,6 +32,7 @@ Program::Program(const string& rom_filename, const string& bootrom_filename) {
   boost::push_back(title_, rom_ | boost::adaptors::sliced(0x0134, 0x0134 + 11));
 
   type_ = rom_[0x0147];
+  rom_size_ = rom_[0x0148];
   ram_size_ = rom_[0x0149];
 }
 
