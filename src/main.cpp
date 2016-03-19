@@ -50,6 +50,7 @@ int main(int argc, const char** argv) {
        << endl;
   cout << "rom size: " << program.rom().size() << endl;
   cout << "bootrom size: " << program.bootrom().size() << endl;
+  cout << "info: " << program.type() << " " << program.rom_size() << " " << program.ram_size() << endl;
 
   gb::Window window;
   gb::LCD lcd(window);

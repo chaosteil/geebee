@@ -29,11 +29,11 @@ class Memory {
   Bytes& hram() { return hram_; }
 
   void reset();
-  Byte read(int address) const;
-  void write(int address, Byte byte);
+  Byte read(Word address) const;
+  void write(Word address, Byte byte);
 
  private:
-  static int in(int address, int from, int to);
+  static int in(Word address, Word from, Word to);
 
   const Program& program_;
   Mbc mbc_;

@@ -21,7 +21,7 @@ void Memory::reset() {
   hram_.assign(0xFFFF - 0xFF80, 0);
 }
 
-Byte Memory::read(int address) const {
+Byte Memory::read(Word address) const {
   switch (address & 0xF000) {
     // 16kB ROM Bank 00
     case 0x0000:
@@ -30,15 +30,16 @@ Byte Memory::read(int address) const {
     case 0x3000:
       if (booting_ && in(address, 0x0000, 0x0100)) {
         return program_.bootrom()[address];
+      } else {
+        return mbc_.read(address);
       }
-      return program_.rom()[address];
 
     // 16kB ROM Bank 01..NN
     case 0x4000:
     case 0x5000:
     case 0x6000:
     case 0x7000:
-      return program_.rom()[address];
+      return mbc_.read(address);
 
     // 8kB VRAM
     case 0x8000:
@@ -48,7 +49,7 @@ Byte Memory::read(int address) const {
     // 8kB ERAM
     case 0xA000:
     case 0xB000:
-      throw std::runtime_error("Reading External RAM");
+      return mbc_.read(address);
 
     // 4KB Work RAM Bank 0 (WRAM)
     case 0xC000:
@@ -99,7 +100,7 @@ Byte Memory::read(int address) const {
   }
 }
 
-void Memory::write(int address, Byte byte) {
+void Memory::write(Word address, Byte byte) {
   switch (address & 0xF000) {
     // 32kB ROM
     case 0x0000:
@@ -110,7 +111,8 @@ void Memory::write(int address, Byte byte) {
     case 0x5000:
     case 0x6000:
     case 0x7000:
-      throw std::runtime_error("Writing ROM");
+      mbc_.write(address, byte);
+      return;
 
     // 8kB Video RAM (VRAM)
     case 0x8000:
@@ -121,7 +123,8 @@ void Memory::write(int address, Byte byte) {
     // 8kB External RAM
     case 0xA000:
     case 0xB000:
-      throw std::runtime_error("Writing External RAM");
+      mbc_.write(address, byte);
+      return;
 
     // 4KB Work RAM Bank 0 (WRAM)
     case 0xC000:
@@ -177,7 +180,7 @@ void Memory::write(int address, Byte byte) {
   }
 }
 
-int Memory::in(int address, int from, int to) {
+int Memory::in(Word address, Word from, Word to) {
   return address >= from && address <= to;
 }
 }
