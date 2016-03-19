@@ -7,10 +7,10 @@ namespace gb {
 
 class Program;
 
-class Mbc {
+class MBC {
  public:
-  Mbc(const Program& program);
-  ~Mbc() = default;
+  MBC(const Program& program);
+  ~MBC() = default;
 
   void reset();
   Byte read(Word address) const;

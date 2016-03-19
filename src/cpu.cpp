@@ -112,8 +112,8 @@ const std::array<std::string, 0x100> CPU::prefix_opcode_description_{
     "SET 6,(HL)", "SET 6,A", "SET 7,B",    "SET 7,C", "SET 7,D",    "SET 7,E",
     "SET 7,H",    "SET 7,L", "SET 7,(HL)", "SET 7,A"};
 
-CPU::CPU(LCD& lcd, const Program& program)
-    : program_(program), memory_(program), output_(false) {
+CPU::CPU(Window& window, const Program& program)
+    : program_(program), memory_(program), lcd_(window, memory_) {
   setupOpcodes();
   setupCbOpcodes();
   reset();
@@ -142,7 +142,32 @@ void CPU::reset() {
 }
 
 void CPU::cycle() {
-  if (!halt_) readInstruction();
+  int timing = 4;
+  Byte iEnable = memory_.read(Memory::Register::InterruptEnable);
+  Byte iFlag = memory_.read(Memory::Register::InterruptFlag);
+
+  // Manage interrupts if we have any
+  if (interrupts_ && (iEnable & iFlag) > 0) {
+    for (int i = 0; i <= 4; i++) {
+      if (bits::bit(iEnable & iFlag, i)) {
+        bits::setBit(iFlag, i, false);
+        memory_.write(Memory::Register::InterruptFlag, iFlag);
+
+        interrupts_ = false;
+        push(bits::high(pc_), bits::low(pc_));
+        pc_ = 0x40 + i * 0x08;
+
+        halt_ = false;
+        timing = 12;
+        break;
+      }
+    }
+  } else {
+    if (!halt_) {
+      timing = readInstruction();
+    }
+  }
+  lcd_.advance(timing);
 }
 
 void CPU::printState() {
@@ -577,22 +602,20 @@ void CPU::setupCbOpcodes() {
   // clang-format on
 }
 
-void CPU::readInstruction() {
+int CPU::readInstruction() {
   Byte op = memory_.read(pc_++);
   if (output_)
     std::cout << "OP: " << opcode_description_[op] << " - 0x" << std::hex
               << (int)op << std::endl;
-  if (output_)
-    printState();
-  handleOpcode(op);
+  if (output_) printState();
+  int timing = handleOpcode(op);
   serializeFlags();
-  if (output_)
-    printState();
+  if (output_) printState();
+
+  return timing;
 }
 
-void CPU::handleOpcode(Byte op) {
-  int timing = opcodes_[op]();
-}
+int CPU::handleOpcode(Byte op) { return opcodes_[op](); }
 
 void CPU::clearFlags() {
   zero_ = false;
@@ -849,15 +872,16 @@ int CPU::push(Byte high, Byte low) {
 }
 
 int CPU::add8Stack() {
-  Byte byte = memory_.read(pc_++);
+  Word prev = sp_;
+  SByte byte = memory_.read(pc_++);
   zero_ = false;
   add_ = false;
 
-  half_carry_ = (((sp_ & 0x000F) + byte & 0x000F) & 0x00F0) > 0;
-  carry_ = (((sp_ & 0x00FF) + byte & 0x00FF) & 0x0F00) > 0;
-
   sp_ += byte;
   sp_ &= 0xFFFF;
+
+  half_carry_ = bits::low(prev) > bits::low(sp_);
+  carry_ = bits::high(prev) > bits::high(sp_);
 
   return 16;
 }

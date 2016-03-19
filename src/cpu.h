@@ -4,17 +4,19 @@
 #include <array>
 #include <functional>
 
-#include "types.h"
+#include "lcd.h"
 #include "memory.h"
+#include "types.h"
 
 namespace gb {
 
 class LCD;
 class Program;
+class Window;
 
 class CPU {
  public:
-  CPU(LCD& lcd, const Program& program);
+  CPU(Window& lcd, const Program& program);
   ~CPU();
 
   Memory& memory() { return memory_; }
@@ -30,9 +32,9 @@ class CPU {
 
   void setupOpcodes();
   void setupCbOpcodes();
-  void readInstruction();
+  int readInstruction();
 
-  void handleOpcode(Byte op);
+  int handleOpcode(Byte op);
   void clearFlags();
   void serializeFlags();
   void deserializeFlags();
@@ -83,30 +85,31 @@ class CPU {
 
   const Program& program_;
   Memory memory_;
+  LCD lcd_;
 
   Opcodes opcodes_;
   Opcodes cb_opcodes_;
 
-  Byte a_;
-  Byte f_;
-  Byte b_;
-  Byte c_;
-  Byte d_;
-  Byte e_;
-  Byte h_;
-  Byte l_;
+  Byte a_{0};
+  Byte f_{0};
+  Byte b_{0};
+  Byte c_{0};
+  Byte d_{0};
+  Byte e_{0};
+  Byte h_{0};
+  Byte l_{0};
 
-  Word sp_;
-  Word pc_;
+  Word sp_{0};
+  Word pc_{0};
 
-  bool interrupts_;
-  bool halt_;
-  bool zero_;
-  bool add_;
-  bool half_carry_;
-  bool carry_;
+  bool interrupts_{false};
+  bool halt_{false};
+  bool zero_{false};
+  bool add_{false};
+  bool half_carry_{false};
+  bool carry_{false};
 
-  bool output_;
+  bool output_{false};
 };
 }
 

@@ -1,37 +1,57 @@
 #ifndef GEEBEE_LCD_H_
 #define GEEBEE_LCD_H_
 
+#include <array>
 #include "types.h"
 
 namespace gb {
 
+class Memory;
 class Window;
 
 class LCD {
  public:
-  LCD(Window& window);
+  LCD(Window& window, Memory& memory);
   ~LCD() = default;
 
-  void draw(const Bytes& bytes);
-  void write(int address, Byte byte);
-  Byte read(int address);
-  int control() const { return control_; }
+  void advance(int timing);
+  void draw();
 
  private:
-  void clearFlags();
-  void serializeFlags();
+  enum class Mode : int {
+    HBlank = 0,
+    VBlank = 1,
+    OAM = 2,
+    VRAM = 3
+  };
+
+  enum Register : Word {
+    Lcdc = 0xFF40,
+    Stat = 0xFF41,
+    Scy = 0xFF42,
+    Scx = 0xFF43,
+    Ly = 0xFF44,
+    Lyc = 0xFF45,
+    Dma = 0xFF46,
+    Bgp = 0xFF47,
+    Obp0 = 0xFF48,
+    Obp1 = 0xFF49,
+    Wy = 0xFF4A,
+    Wx = 0xFF4B
+  };
+  static const std::array<int, 4> color_map_;
+
+  void resetInterruptFlags();
+  void setMode(Mode mode);
+  void updateMemoryAccess();
+  void updateLyc();
 
   Window& window_;
+  Memory& memory_;
 
-  Byte control_;
-  bool enable_;
-  bool window_tile_map_display_;
-  bool window_display_;
-  bool bg_window_tile_data_;
-  bool bg_tile_map_display_;
-  bool obj_size_;
-  bool obj_display_;
-  bool bg_display_;
+  bool enabled_{false};
+  Mode mode_{Mode::HBlank};
+  int mode_timing_{0};
 };
 }
 

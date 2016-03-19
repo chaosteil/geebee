@@ -53,9 +53,7 @@ int main(int argc, const char** argv) {
   cout << "info: " << program.type() << " " << program.rom_size() << " " << program.ram_size() << endl;
 
   gb::Window window;
-  gb::LCD lcd(window);
-
-  gb::CPU cpu(lcd, program);
+  gb::CPU cpu(window, program);
   while (true) {
     //if (window.handleEvents()) {
       //break;

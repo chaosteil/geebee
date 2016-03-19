@@ -17,8 +17,12 @@ void Memory::reset() {
   ram_.assign(0x2000, 0);
   vram_.assign(0x2000, 0);
   sat_.assign(0xFEA0 - 0xFE00, 0);
-  io_.assign(0xFF80 - 0xFF00, 0);
+  // All I/O flags + the single flag at FFFF
+  io_.assign(0xFF80 - 0xFF00 + 1, 0);
   hram_.assign(0xFFFF - 0xFF80, 0);
+
+  oam_access_ = true;
+  vram_access_ = true;
 }
 
 Byte Memory::read(Word address) const {
@@ -44,7 +48,7 @@ Byte Memory::read(Word address) const {
     // 8kB VRAM
     case 0x8000:
     case 0x9000:
-      return vram_[address - 0x8000];
+      return vram_access_ ? vram_[address - 0x8000] : 0x00;
 
     // 8kB ERAM
     case 0xA000:
@@ -72,7 +76,7 @@ Byte Memory::read(Word address) const {
 
     // Sprite Attribute Table (OAM)
   } else if (in(address, 0xFE00, 0xFE9F)) {
-    return sat_[address - 0xFE00];
+    return oam_access_ ? sat_[address - 0xFE00] : 0x00;
 
     // Not Usable
   } else if (in(address, 0xFEA0, 0xFEFF)) {
@@ -80,10 +84,6 @@ Byte Memory::read(Word address) const {
 
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
-    if (address == 0xFF44) {
-      drawable_ = true;
-      return 0x90;
-    }
     return io_[address - 0xFF00];
 
     // High RAM (HRAM)
@@ -92,7 +92,7 @@ Byte Memory::read(Word address) const {
 
     // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
-    throw std::runtime_error("Reading Interrupt Enable Register");
+    return io_.back();
 
   } else {
     throw std::runtime_error("Completely invalid address " +
@@ -117,6 +117,7 @@ void Memory::write(Word address, Byte byte) {
     // 8kB Video RAM (VRAM)
     case 0x8000:
     case 0x9000:
+      if (!vram_access_) return;
       vram_[address - 0x8000] = byte;
       return;
 
@@ -151,6 +152,7 @@ void Memory::write(Word address, Byte byte) {
 
     // Sprite Attribute Table (OAM)
   } else if (in(address, 0xFE00, 0xFE9F)) {
+    if (!oam_access_) return;
     sat_[address - 0xFE00] = byte;
 
     // Not Usable
@@ -159,11 +161,12 @@ void Memory::write(Word address, Byte byte) {
 
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
-    std::cout << "IO WRITE: " << std::hex << (int)address << " " << byte
-              << std::endl;
+    if (address == Register::SerialTransferControl && byte == 0x81) {
+      std::cout << "IO: " << read(Register::SerialTransferData) << std::endl;
+    }
     io_[address - 0xFF00] = byte;
 
-    if (address == 0xFF50 && byte != 0x0) {
+    if (address == Register::BootMode && byte != 0x0) {
       booting_ = false;
     }
     // High RAM (HRAM)
@@ -172,7 +175,7 @@ void Memory::write(Word address, Byte byte) {
 
     // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
-    // throw std::runtime_error("Writing Interrupt Enable Register");
+    io_.back() = byte;
 
   } else {
     throw std::runtime_error("Completely invalid address " +

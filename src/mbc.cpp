@@ -6,11 +6,11 @@
 
 namespace gb {
 
-Mbc::Mbc(const Program& program) : program_(program) {
+MBC::MBC(const Program& program) : program_(program) {
   reset();
 }
 
-void Mbc::reset() {
+void MBC::reset() {
   int type = program_.type();
 
   switch (type) {
@@ -83,7 +83,7 @@ void Mbc::reset() {
   }
 }
 
-Byte Mbc::read(Word address) const {
+Byte MBC::read(Word address) const {
   switch (address & 0xF000) {
     case 0x0000:
     case 0x1000:
@@ -105,7 +105,7 @@ Byte Mbc::read(Word address) const {
   }
 }
 
-void Mbc::write(Word address, Byte byte) {
+void MBC::write(Word address, Byte byte) {
   switch (address & 0xF000) {
     case 0x0000:
     case 0x1000:
@@ -135,7 +135,7 @@ void Mbc::write(Word address, Byte byte) {
   }
 }
 
-uint32_t Mbc::translateRomAddress(Word address) const {
+uint32_t MBC::translateRomAddress(Word address) const {
   if (rom_bank_ <= 0x01) {
     return address;
   }
@@ -151,7 +151,7 @@ uint32_t Mbc::translateRomAddress(Word address) const {
   return bank + (address - 0x4000);
 }
 
-void Mbc::prepareRam() {
+void MBC::prepareRam() {
   if (mbc_ == 2) {
     ram_.assign(512, 0);
     return;
@@ -172,18 +172,18 @@ void Mbc::prepareRam() {
   }
 }
 
-void Mbc::enableRam(Byte byte) {
+void MBC::enableRam(Byte byte) {
   byte &= 0x0F;
   ram_enable_ = byte == 0x0A;
 }
 
-void Mbc::selectRomBank(Byte byte) {
+void MBC::selectRomBank(Byte byte) {
   byte &= 0x1F;
   rom_bank_ &= 0xE0;
   rom_bank_ |= byte;
 }
 
-void Mbc::selectModeSpecificSelect(Byte byte) {
+void MBC::selectModeSpecificSelect(Byte byte) {
   byte &= 0x03;
   if (ram_banking_) {
     ram_bank_ = byte;
@@ -193,5 +193,5 @@ void Mbc::selectModeSpecificSelect(Byte byte) {
   }
 }
 
-void Mbc::selectModeSelect(Byte byte) { ram_banking_ = byte & 0x01; }
+void MBC::selectModeSelect(Byte byte) { ram_banking_ = byte & 0x01; }
 }
