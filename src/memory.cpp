@@ -7,7 +7,9 @@
 
 namespace gb {
 
-Memory::Memory(const Program& program) : program_(program) { reset(); }
+Memory::Memory(const Program& program) : program_(program), mbc_(program) {
+  reset();
+}
 
 void Memory::reset() {
   booting_ = true;
@@ -79,7 +81,7 @@ Byte Memory::read(int address) const {
   } else if (in(address, 0xFF00, 0xFF7F)) {
     if (address == 0xFF44) {
       drawable_ = true;
-       return 0x90;
+      return 0x90;
     }
     return io_[address - 0xFF00];
 
@@ -113,7 +115,8 @@ void Memory::write(int address, Byte byte) {
     // 8kB Video RAM (VRAM)
     case 0x8000:
     case 0x9000:
-      vram_[address - 0x8000] = byte; return;
+      vram_[address - 0x8000] = byte;
+      return;
 
     // 8kB External RAM
     case 0xA000:
@@ -122,15 +125,18 @@ void Memory::write(int address, Byte byte) {
 
     // 4KB Work RAM Bank 0 (WRAM)
     case 0xC000:
-      ram_[address - 0xC000] = byte; return;
+      ram_[address - 0xC000] = byte;
+      return;
 
     // 4KB Work RAM Bank 1 (WRAM)
     case 0xD000:
-      ram_[address - 0xC000] = byte; return;
+      ram_[address - 0xC000] = byte;
+      return;
 
     // Same as C000-DDFF (ECHO)
     case 0xE000:
-      ram_[address - 0xC000] = byte; return;
+      ram_[address - 0xC000] = byte;
+      return;
 
     default:
       break;
@@ -163,7 +169,7 @@ void Memory::write(int address, Byte byte) {
 
     // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
-    //throw std::runtime_error("Writing Interrupt Enable Register");
+    // throw std::runtime_error("Writing Interrupt Enable Register");
 
   } else {
     throw std::runtime_error("Completely invalid address " +

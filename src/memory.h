@@ -2,6 +2,7 @@
 #define GEEBEE_MEMORY_H_
 
 #include "types.h"
+#include "mbc.h"
 
 namespace gb {
 
@@ -35,6 +36,7 @@ class Memory {
   static int in(int address, int from, int to);
 
   const Program& program_;
+  Mbc mbc_;
 
   bool booting_;
   mutable bool drawable_{false};
