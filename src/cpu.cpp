@@ -652,7 +652,7 @@ int CPU::jumpRelative8Data(bool jump) {
   if (jump) {
     pc_ += address;
     if (prev - 1 == pc_) {
-      throw int();
+      throw std::runtime_error("Jumping to same address forever. Stopping");
     }
     return 12;
   } else {
