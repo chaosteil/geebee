@@ -2,6 +2,7 @@
 #define GEEBEE_LCD_H_
 
 #include <array>
+
 #include "types.h"
 
 namespace gb {
@@ -18,12 +19,7 @@ class LCD {
   void draw();
 
  private:
-  enum class Mode : int {
-    HBlank = 0,
-    VBlank = 1,
-    OAM = 2,
-    VRAM = 3
-  };
+  enum class Mode : int { HBlank = 0, VBlank = 1, OAM = 2, VRAM = 3 };
 
   enum Register : Word {
     Lcdc = 0xFF40,

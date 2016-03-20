@@ -113,7 +113,10 @@ const std::array<std::string, 0x100> CPU::prefix_opcode_description_{
     "SET 7,H",    "SET 7,L", "SET 7,(HL)", "SET 7,A"};
 
 CPU::CPU(Window& window, const Program& program)
-    : program_(program), memory_(program), lcd_(window, memory_) {
+    : program_(program),
+      memory_(program_),
+      timer_(memory_),
+      lcd_(window, memory_) {
   setupOpcodes();
   setupCbOpcodes();
   reset();
@@ -135,7 +138,7 @@ void CPU::reset() {
   sp_ = 0;
   pc_ = 0;
 
-  interrupts_ = false;
+  interrupts_ = true;
   halt_ = false;
 
   clearFlags();
@@ -145,9 +148,10 @@ void CPU::cycle() {
   int timing = 4;
   Byte iEnable = memory_.read(Memory::Register::InterruptEnable);
   Byte iFlag = memory_.read(Memory::Register::InterruptFlag);
+  bool hasInterrupt = iEnable & iFlag;
 
   // Manage interrupts if we have any
-  if (interrupts_ && (iEnable & iFlag) > 0) {
+  if (interrupts_ && hasInterrupt) {
     for (int i = 0; i <= 4; i++) {
       if (bits::bit(iEnable & iFlag, i)) {
         bits::setBit(iFlag, i, false);
@@ -162,11 +166,13 @@ void CPU::cycle() {
         break;
       }
     }
-  } else {
-    if (!halt_) {
-      timing = readInstruction();
-    }
+  } else if (!interrupts_ && hasInterrupt  && halt_) {
+    halt_ = false;
+  } else if (!halt_){
+    timing = readInstruction();
   }
+
+  timer_.advance(timing);
   lcd_.advance(timing);
 }
 

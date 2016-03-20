@@ -6,6 +6,7 @@
 
 #include "lcd.h"
 #include "memory.h"
+#include "timer.h"
 #include "types.h"
 
 namespace gb {
@@ -85,6 +86,7 @@ class CPU {
 
   const Program& program_;
   Memory memory_;
+  Timer timer_;
   LCD lcd_;
 
   Opcodes opcodes_;
