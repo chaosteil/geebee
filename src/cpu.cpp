@@ -145,6 +145,12 @@ void CPU::reset() {
 }
 
 void CPU::cycle() {
+  do {
+    step();
+  } while (!lcd_.doneFrame());
+}
+
+void CPU::step() {
   int timing = 4;
   Byte iEnable = memory_.read(Memory::Register::InterruptEnable);
   Byte iFlag = memory_.read(Memory::Register::InterruptFlag);
@@ -676,13 +682,9 @@ int CPU::load16DataAddress() {
 }
 
 int CPU::jumpRelative8Data(bool jump) {
-  Word prev = pc_;
   SByte address = memory_.read(pc_++);
   if (jump) {
     pc_ += address;
-    if (prev - 1 == pc_) {
-      throw std::runtime_error("Jumping to same address forever. Stopping");
-    }
     return 12;
   } else {
     return 8;

@@ -23,6 +23,8 @@ class CPU {
   Memory& memory() { return memory_; }
   void reset();
   void cycle();
+  void step();
+
   void printState();
 
  private:

@@ -55,12 +55,11 @@ int main(int argc, const char** argv) {
   gb::Window window;
   gb::CPU cpu(window, program);
   while (true) {
-    //if (window.handleEvents()) {
-      //break;
-    //}
+    if (window.handleEvents()) {
+      break;
+    }
     cpu.cycle();
-    //if (cpu.memory().drawable()) lcd.draw(cpu.memory().vram());
-    //window.draw();
+    window.draw();
   }
 
   return 0;

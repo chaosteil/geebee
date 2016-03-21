@@ -15,6 +15,7 @@ class LCD {
   LCD(Window& window, Memory& memory);
   ~LCD() = default;
 
+  bool doneFrame() const { return done_frame_; }
   void advance(int timing);
   void draw();
 
@@ -35,8 +36,18 @@ class LCD {
     Wy = 0xFF4A,
     Wx = 0xFF4B
   };
+
+  struct SpriteInfo {
+    Byte x{0};
+    Byte y{0};
+    Byte tile{0};
+    Byte flags{0};
+
+    SpriteInfo(const Memory& memory, int id);
+  };
   static const std::array<int, 4> color_map_;
 
+  void drawLine(int ly);
   void resetInterruptFlags();
   void setMode(Mode mode);
   void updateMemoryAccess();
@@ -48,6 +59,7 @@ class LCD {
   bool enabled_{false};
   Mode mode_{Mode::HBlank};
   int mode_timing_{0};
+  bool done_frame_{true};
 };
 }
 

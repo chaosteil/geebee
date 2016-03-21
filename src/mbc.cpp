@@ -6,14 +6,16 @@
 
 namespace gb {
 
-MBC::MBC(const Program& program) : program_(program) {
-  reset();
-}
+MBC::MBC(const Program& program) : program_(program) { reset(); }
 
 void MBC::reset() {
   int type = program_.type();
 
   switch (type) {
+    case 0x00:
+      mbc_ = 0;
+      break;
+
     case 0x01:
     case 0x02:
     case 0x03:

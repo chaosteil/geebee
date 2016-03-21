@@ -161,9 +161,6 @@ void Memory::write(Word address, Byte byte) {
 
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
-    if (address == Register::SerialTransferControl && byte == 0x81) {
-      std::cout << "IO: " << read(Register::SerialTransferData) << std::endl;
-    }
     io_[address - 0xFF00] = byte;
 
     if (address == Register::BootMode && byte != 0x0) {

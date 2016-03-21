@@ -14,7 +14,7 @@ Window::Window(const std::string& title)
       texture_(SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_ARGB8888,
                                  SDL_TEXTUREACCESS_STREAMING, 160, 144),
                [](SDL_Texture* texture) { SDL_DestroyTexture(texture); }),
-      surface_(SDL_CreateRGBSurface(0, 256, 256, 32, 0, 0, 0, 0),
+      surface_(SDL_CreateRGBSurface(0, 160, 144, 32, 0, 0, 0, 0),
                [](SDL_Surface* surface) { SDL_FreeSurface(surface); }),
       position_{0, 0, 160, 144} {
   SDL_FillRect(surface_.get(), NULL,

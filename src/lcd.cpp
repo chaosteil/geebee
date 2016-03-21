@@ -1,5 +1,6 @@
 #include "lcd.h"
 
+#include <algorithm>
 #include <iostream>
 
 #include <SDL2/SDL.h>
@@ -10,11 +11,12 @@
 
 namespace gb {
 
-const std::array<int, 4> color_map_{255, 170, 85, 0};
+const std::array<int, 4> LCD::color_map_{255, 170, 85, 0};
 
 LCD::LCD(Window& window, Memory& memory) : window_(window), memory_(memory) {}
 
 void LCD::advance(int timing) {
+  done_frame_ = false;
   resetInterruptFlags();
 
   memory_.setOAMAccess(true);
@@ -45,6 +47,9 @@ void LCD::advance(int timing) {
     if (mode_timing_ >= 172) {
       mode_timing_ -= 172;
       setMode(Mode::HBlank);
+
+      Byte ly = memory_.read(Register::Ly);
+      drawLine(ly);
     }
   } else if (mode_ == Mode::HBlank) {
     if (mode_timing_ >= 205) {
@@ -74,22 +79,6 @@ void LCD::advance(int timing) {
 }
 
 void LCD::draw() {
-  Byte bg_palette_data = memory_.read(Register::Bgp);
-  Byte obp0_palette_data = memory_.read(Register::Obp0);
-  Byte obp1_palette_data = memory_.read(Register::Obp1);
-
-  auto palette = [](Byte palette, int color) -> int {
-    int value = palette >> (color * 2);
-    value &= 0x3;
-    return color_map_[value];
-  };
-  auto color_number = [](int bit, Byte top, Byte bottom) -> int {
-    return (((top >> bit) & 1) << 1) | ((bottom >> bit) & 1);
-  };
-  auto surface = window_.surface().lock();
-  auto format = surface->format;
-  uint32_t* pixels = (uint32_t*)surface->pixels;
-
   // int z = 0;
   // for (int y = 0; y < 32; ++y) {
   // for (int x = 0; x < 32; ++x) {
@@ -128,6 +117,82 @@ void LCD::draw() {
   //}
 }
 
+LCD::SpriteInfo::SpriteInfo(const Memory& memory, int id)
+    : x(memory.read(0x8000 + id * 4 + 0)),
+      y(memory.read(0x8000 + id * 4 + 1)),
+      tile(memory.read(0x8000 + id * 4 + 2)),
+      flags(memory.read(0x8000 + id * 4 + 3)) {}
+
+void LCD::drawLine(int ly) {
+  if (ly >= 144) return;
+  Byte bgp_data = memory_.read(Register::Bgp);
+  Byte obp0_data = memory_.read(Register::Obp0);
+  Byte obp1_data = memory_.read(Register::Obp1);
+
+  auto palette = [](Byte palette, int color) -> int {
+    int value = palette >> (color * 2);
+    value &= 0x3;
+    return color_map_[value];
+  };
+  auto color_number = [](int bit, Byte top, Byte bottom) -> int {
+    return (((top >> bit) & 1) << 1) | ((bottom >> bit) & 1);
+  };
+
+  Byte lcdc = memory_.read(Register::Lcdc);
+  Byte scx = memory_.read(Register::Scx);
+  Byte scy = memory_.read(Register::Scy);
+  Byte wx = memory_.read(Register::Wx);
+  Byte wy = memory_.read(Register::Wy);
+
+  bool signed_tile = bits::bit(lcdc, 4);
+  Word bg_tile_data = !signed_tile ? 0x9000 : 0x8000;
+  Word bg_tile_map = bits::bit(lcdc, 3) == false ? 0x9800 : 0x9C00;
+
+  auto surface = window_.surface().lock();
+  auto format = surface->format;
+  auto pixels = (uint32_t*)surface->pixels;
+
+  // BG
+  int y = (ly + scy) % 256;
+  for (int i = 0; i < 160; i++) {
+    int x = (i + scx) % 256;
+    int tile_x = x / 8;
+    int tile_y = y / 8;
+    int pixel_x = 7 - x % 8;
+    int pixel_y = y % 8;
+
+    Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
+    int offset = signed_tile ? (SByte)tile : tile;
+    Byte bottom = memory_.read(bg_tile_data + offset * 16 + (pixel_y * 2));
+    Byte top = memory_.read(bg_tile_data + offset * 16 + (pixel_y * 2) + 1);
+
+    Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
+    pixels[ly * 160 + i] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
+  }
+
+  // OBJ
+  /*
+  std::vector<SpriteInfo> sprites;
+  for (int i = 0; i < 40; i++) {
+    sprites.push_back(SpriteInfo{memory_, i});
+  }
+  sprites.erase(std::remove_if(std::begin(sprites), std::end(sprites),
+                               [ly](const SpriteInfo& sprite) {
+                                 return sprite.y > 0 && sprite.y < 160 &&
+                                        ly < sprite.y &&
+                                        ((int)ly + 16) > sprite.y;
+                               }),
+                sprites.end());
+  std::sort(std::begin(sprites), std::end(sprites),
+            [](const SpriteInfo& left, const SpriteInfo& right) {
+              return left.x < right.x;
+            });
+
+  int size = std::min(10, (int)sprites.size());
+  for (int i = 0; i < size; i++) {
+  }*/
+}
+
 void LCD::resetInterruptFlags() {
   Byte interrupts = memory_.read(Memory::Register::InterruptFlag);
   bits::setBit(interrupts, 0, false);
@@ -153,6 +218,7 @@ void LCD::setMode(Mode mode) {
   }
   if ((mode == Mode::VBlank)) {
     bits::setBit(interrupts, 0, true);
+    done_frame_ = true;
   }
 
   memory_.write(Memory::Register::InterruptFlag, interrupts);
