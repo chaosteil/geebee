@@ -4,11 +4,11 @@
 #include <boost/program_options.hpp>
 #include <SDL2/SDL.h>
 
-#include "cpu.h"
-#include "lcd.h"
-#include "program.h"
-#include "sdl.h"
-#include "window.h"
+#include "CPU.h"
+#include "LCD.h"
+#include "Program.h"
+#include "SDL.h"
+#include "Window.h"
 
 using namespace std;
 namespace po = boost::program_options;

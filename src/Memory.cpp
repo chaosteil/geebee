@@ -1,9 +1,10 @@
+#include "Memory.h"
+
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
-#include "memory.h"
-#include "program.h"
+#include "Program.h"
 
 namespace gb {
 

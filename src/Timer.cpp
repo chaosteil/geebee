@@ -1,8 +1,9 @@
-#include "timer.h"
+#include "Timer.h"
 
 #include <iostream>
+
+#include "Memory.h"
 #include "bits.h"
-#include "memory.h"
 
 namespace gb {
 

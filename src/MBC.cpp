@@ -1,8 +1,8 @@
-#include "mbc.h"
+#include "MBC.h"
 
 #include <stdexcept>
 
-#include "program.h"
+#include "Program.h"
 
 namespace gb {
 

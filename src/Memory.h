@@ -1,8 +1,8 @@
 #ifndef GEEBEE_MEMORY_H_
 #define GEEBEE_MEMORY_H_
 
+#include "MBC.h"
 #include "types.h"
-#include "mbc.h"
 
 namespace gb {
 

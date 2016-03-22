@@ -4,9 +4,9 @@
 #include <array>
 #include <functional>
 
-#include "lcd.h"
-#include "memory.h"
-#include "timer.h"
+#include "LCD.h"
+#include "Memory.h"
+#include "Timer.h"
 #include "types.h"
 
 namespace gb {

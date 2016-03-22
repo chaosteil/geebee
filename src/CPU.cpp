@@ -1,4 +1,4 @@
-#include "cpu.h"
+#include "CPU.h"
 
 #include <algorithm>
 #include <iostream>
@@ -8,8 +8,8 @@
 #include <boost/convert.hpp>
 #include <boost/convert/stream.hpp>
 
+#include "Program.h"
 #include "bits.h"
-#include "program.h"
 
 namespace gb {
 

@@ -1,13 +1,13 @@
-#include "lcd.h"
+#include "LCD.h"
 
 #include <algorithm>
 #include <iostream>
 
 #include <SDL2/SDL.h>
 
+#include "Memory.h"
+#include "Window.h"
 #include "bits.h"
-#include "memory.h"
-#include "window.h"
 
 namespace gb {
 
@@ -76,45 +76,6 @@ void LCD::advance(int timing) {
 
   updateLyc();
   updateMemoryAccess();
-}
-
-void LCD::draw() {
-  // int z = 0;
-  // for (int y = 0; y < 32; ++y) {
-  // for (int x = 0; x < 32; ++x) {
-  // Byte tile = memory_.vram()[z + 0x1800];
-  // for (int i = 0; i < 8; ++i) {
-  // Byte bottom = memory_.vram()[tile * 16 + i * 2];
-  // Byte top = memory_.vram()[tile * 16 + 1 + i * 2];
-
-  // int a = color(7, bottom, top);
-  // int b = color(6, bottom, top);
-  // int c = color(5, bottom, top);
-  // int d = color(4, bottom, top);
-  // int e = color(3, bottom, top);
-  // int f = color(2, bottom, top);
-  // int g = color(1, bottom, top);
-  // int h = color(0, bottom, top);
-  // pixels[x * 8 + 0 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, a, a, a, 255);
-  // pixels[x * 8 + 1 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, b, b, b, 255);
-  // pixels[x * 8 + 2 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, c, c, c, 255);
-  // pixels[x * 8 + 3 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, d, d, d, 255);
-  // pixels[x * 8 + 4 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, e, e, e, 255);
-  // pixels[x * 8 + 5 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, f, f, f, 255);
-  // pixels[x * 8 + 6 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, g, g, g, 255);
-  // pixels[x * 8 + 7 + ((y * 8) + i) * 256] =
-  // SDL_MapRGBA(format, h, h, h, 255);
-  //}
-  // z++;
-  //}
-  //}
 }
 
 LCD::SpriteInfo::SpriteInfo(const Memory& memory, int id)
