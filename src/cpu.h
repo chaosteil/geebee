@@ -56,7 +56,9 @@ class CPU {
   int dec(Byte& byte);
   int addHl(Word word);
   int add(Byte byte);
+  int addCarry(Byte byte);
   int sub(Byte byte);
+  int subCarry(Byte byte);
 
   int compare(Byte byte);
 

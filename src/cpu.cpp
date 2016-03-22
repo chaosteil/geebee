@@ -172,9 +172,9 @@ void CPU::step() {
         break;
       }
     }
-  } else if (!interrupts_ && hasInterrupt  && halt_) {
+  } else if (!interrupts_ && hasInterrupt && halt_) {
     halt_ = false;
-  } else if (!halt_){
+  } else if (!halt_) {
     timing = readInstruction();
   }
 
@@ -196,9 +196,9 @@ void CPU::printState() {
 
 void CPU::setupOpcodes() {
   // Helper functions
-  auto bc = [&]() { return bits::assemble(b_, c_); };
-  auto de = [&]() { return bits::assemble(d_, e_); };
-  auto hl = [&]() { return bits::assemble(h_, l_); };
+  auto bc = [&]() -> Word { return bits::assemble(b_, c_); };
+  auto de = [&]() -> Word { return bits::assemble(d_, e_); };
+  auto hl = [&]() -> Word { return bits::assemble(h_, l_); };
 
   // clang-format off
   opcodes_[0x00] = [&]() { return 4; };
@@ -220,7 +220,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x03] = [&]() { bits::inc(b_, c_); return 8; };
   opcodes_[0x13] = [&]() { bits::inc(d_, e_); return 8; };
   opcodes_[0x23] = [&]() { bits::inc(h_, l_); return 8; };
-  opcodes_[0x33] = [&]() { sp_++; sp_ &= 0xFFFF; return 8; };
+  opcodes_[0x33] = [&]() { sp_++; return 8; };
   
   opcodes_[0x04] = [&]() { return inc(b_); };
   opcodes_[0x14] = [&]() { return inc(d_); };
@@ -242,7 +242,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x27] = [&]() { daa(); return 4; };
   opcodes_[0x37] = [&]() { add_ = false; half_carry_ = false; carry_ = true; return 4; };
 
-  opcodes_[0x08] = [&]() { Byte low = memory_.read(pc_++); Byte high = memory_.read(pc_++); Word word = bits::assemble(high, low); memory_.write(++word, bits::low(sp_)); memory_.write(++word, bits::high(sp_)); return 20; };
+  opcodes_[0x08] = [&]() { Byte low = memory_.read(pc_++); Byte high = memory_.read(pc_++); Word word = bits::assemble(high, low); memory_.write(word, bits::low(sp_)); memory_.write(word + 1, bits::high(sp_)); return 20; };
   opcodes_[0x18] = [&]() { return jumpRelative8Data(true); };
   opcodes_[0x28] = [&]() { return jumpRelative8Data(zero_); };
   opcodes_[0x38] = [&]() { return jumpRelative8Data(carry_); };
@@ -260,7 +260,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x0B] = [&]() { bits::dec(b_, c_); return 8; };
   opcodes_[0x1B] = [&]() { bits::dec(d_, e_); return 8; };
   opcodes_[0x2B] = [&]() { bits::dec(h_, l_); return 8; };
-  opcodes_[0x3B] = [&]() { sp_--; sp_ &= 0xFFFF; return 8; };
+  opcodes_[0x3B] = [&]() { sp_--; return 8; };
   
   opcodes_[0x0C] = [&]() { return inc(c_); };
   opcodes_[0x1C] = [&]() { return inc(e_); };
@@ -362,14 +362,14 @@ void CPU::setupOpcodes() {
   opcodes_[0x86] = [&, hl]() { return add(memory_.read(hl())) + 4; };
   opcodes_[0x87] = [&]() { return add(a_); };
   
-  opcodes_[0x88] = [&]() { return add(b_ + carry_ ? 1 : 0); };
-  opcodes_[0x89] = [&]() { return add(c_ + carry_ ? 1 : 0); };
-  opcodes_[0x8A] = [&]() { return add(d_ + carry_ ? 1 : 0); };
-  opcodes_[0x8B] = [&]() { return add(e_ + carry_ ? 1 : 0); };
-  opcodes_[0x8C] = [&]() { return add(h_ + carry_ ? 1 : 0); };
-  opcodes_[0x8D] = [&]() { return add(l_ + carry_ ? 1 : 0); };
-  opcodes_[0x8E] = [&, hl]() { return add(memory_.read(hl() + carry_ ? 1 : 0)) + 4; };
-  opcodes_[0x8F] = [&]() { return add(a_ + carry_ ? 1 : 0); };
+  opcodes_[0x88] = [&]() { return addCarry(b_); };
+  opcodes_[0x89] = [&]() { return addCarry(c_); };
+  opcodes_[0x8A] = [&]() { return addCarry(d_); };
+  opcodes_[0x8B] = [&]() { return addCarry(e_); };
+  opcodes_[0x8C] = [&]() { return addCarry(h_); };
+  opcodes_[0x8D] = [&]() { return addCarry(l_); };
+  opcodes_[0x8E] = [&, hl]() { return addCarry(memory_.read(hl())) + 4; };
+  opcodes_[0x8F] = [&]() { return addCarry(a_); };
   
   opcodes_[0x90] = [&]() { return sub(b_); };
   opcodes_[0x91] = [&]() { return sub(c_); };
@@ -380,14 +380,14 @@ void CPU::setupOpcodes() {
   opcodes_[0x96] = [&, hl]() { return sub(memory_.read(hl())) + 4; };
   opcodes_[0x97] = [&]() { return sub(a_); };
   
-  opcodes_[0x98] = [&]() { return sub(b_ + carry_ ? 1 : 0); };
-  opcodes_[0x99] = [&]() { return sub(c_ + carry_ ? 1 : 0); };
-  opcodes_[0x9A] = [&]() { return sub(d_ + carry_ ? 1 : 0); };
-  opcodes_[0x9B] = [&]() { return sub(e_ + carry_ ? 1 : 0); };
-  opcodes_[0x9C] = [&]() { return sub(h_ + carry_ ? 1 : 0); };
-  opcodes_[0x9D] = [&]() { return sub(l_ + carry_ ? 1 : 0); };
-  opcodes_[0x9E] = [&, hl]() { return sub(memory_.read(hl() + carry_ ? 1 : 0)) + 4; };
-  opcodes_[0x9F] = [&]() { return sub(a_ + carry_ ? 1 : 0); };
+  opcodes_[0x98] = [&]() { return subCarry(b_); };
+  opcodes_[0x99] = [&]() { return subCarry(c_); };
+  opcodes_[0x9A] = [&]() { return subCarry(d_); };
+  opcodes_[0x9B] = [&]() { return subCarry(e_); };
+  opcodes_[0x9C] = [&]() { return subCarry(h_); };
+  opcodes_[0x9D] = [&]() { return subCarry(l_); };
+  opcodes_[0x9E] = [&, hl]() { return subCarry(memory_.read(hl())) + 4; };
+  opcodes_[0x9F] = [&]() { return subCarry(a_); };
   
   opcodes_[0xA0] = [&]() { return handleAnd(b_); };
   opcodes_[0xA1] = [&]() { return handleAnd(c_); };
@@ -464,7 +464,7 @@ void CPU::setupOpcodes() {
   opcodes_[0xC8] = [&]() { return ret(zero_); };
   opcodes_[0xD8] = [&]() { return ret(carry_); };
   opcodes_[0xE8] = [&]() { return add8Stack(); };
-  opcodes_[0xF8] = [&]() { Word sp = sp_; add8Stack(); h_ = bits::high(sp_); l_ = bits::low(sp_); sp_ = sp; return 12; };
+  opcodes_[0xF8] = [&]() { Word prev = sp_; add8Stack(); h_ = bits::high(sp_); l_ = bits::low(sp_); sp_ = prev; return 12; };
 
   opcodes_[0xC9] = [&]() { ret(true); return 16; };
   opcodes_[0xD9] = [&]() { ret(true); interrupts_ = true; return 16; };
@@ -489,8 +489,8 @@ void CPU::setupOpcodes() {
 
   opcodes_[0xCD] = [&]() { return call16Data(true); };
 
-  opcodes_[0xCE] = [&]() { return handleXor(memory_.read(pc_++)) + 4; };
-  opcodes_[0xDE] = [&]() { return compare(memory_.read(pc_++)) + 4; };
+  opcodes_[0xCE] = [&]() { return addCarry(memory_.read(pc_++)) + 4; };
+  opcodes_[0xDE] = [&]() { return subCarry(memory_.read(pc_++)) + 4; };
   opcodes_[0xEE] = [&]() { return handleXor(memory_.read(pc_++)) + 4; };
   opcodes_[0xFE] = [&]() { return compare(memory_.read(pc_++)) + 4; };
   
@@ -752,37 +752,76 @@ int CPU::dec(Byte& byte) {
 int CPU::addHl(Word word) {
   add_ = false;
 
-  Word prev = bits::assemble(h_, l_);
-  Word hl = prev;
-  hl += word;
+  Word hl = bits::assemble(h_, l_);
+  int result = hl + word;
+  carry_ = result & 0x10000;
+  result &= 0xFFFF;
+  half_carry_ = (hl ^ word ^ result) & 0x1000;
 
-  h_ = bits::high(hl);
-  l_ = bits::low(hl);
-
-  half_carry_ = bits::low(prev) > l_;
-  carry_ = bits::high(prev) > h_;
+  h_ = bits::high(result);
+  l_ = bits::low(result);
 
   return 8;
 }
 
 int CPU::add(Byte byte) {
-  Byte prev = a_;
-  a_ += byte;
+  int result = a_ + byte;
   add_ = false;
-  zero_ = a_ == 0;
-  half_carry_ = (prev & 0x0F) > (a_ & 0x0F);
-  carry_ = (prev & 0xF0) > (a_ & 0xF0);
+  carry_ = (a_ ^ byte ^ result) & 0x100;
+  half_carry_ = (a_ ^ byte ^ result) & 0x10;
+  result &= 0xFF;
+  zero_ = result == 0;
+  a_ = result;
+
+  return 4;
+}
+
+int CPU::addCarry(Byte byte) {
+  int carry = carry_ ? 1 : 0;
+  int result = a_ + byte + carry;
+
+  add_ = false;
+
+  carry_ = result > 0xFF;
+  half_carry_ = ((a_ & 0x0F) + (byte & 0x0F) + carry) > 0x0F;
+
+  result &= 0xFF;
+  zero_ = result == 0;
+
+  a_ = result;
 
   return 4;
 }
 
 int CPU::sub(Byte byte) {
-  Byte prev = a_;
-  a_ -= byte;
+  int result = a_ - byte;
+
   add_ = true;
-  half_carry_ = (a_ ^ (byte ^ prev) & 0x10);
-  carry_ = (byte > prev);
-  zero_ = a_ == 0;
+
+  carry_ = (a_ ^ byte ^ result) & 0x100;
+  half_carry_ = (a_ ^ byte ^ result) & 0x10;
+
+  result &= 0xFF;
+  zero_ = result == 0;
+
+  a_ = result;
+
+  return 4;
+}
+
+int CPU::subCarry(Byte byte) {
+  int carry = carry_ ? 1 : 0;
+  int result = a_ - byte - carry;
+
+  add_ = true;
+
+  carry_ = result < 0;
+  half_carry_ = ((a_ & 0x0F) - (byte & 0x0F) - carry) < 0;
+
+  result &= 0xFF;
+  zero_ = result == 0;
+
+  a_ = result;
 
   return 4;
 }
@@ -880,16 +919,14 @@ int CPU::push(Byte high, Byte low) {
 }
 
 int CPU::add8Stack() {
-  Word prev = sp_;
   SByte byte = memory_.read(pc_++);
   zero_ = false;
   add_ = false;
 
-  sp_ += byte;
-  sp_ &= 0xFFFF;
-
-  half_carry_ = bits::low(prev) > bits::low(sp_);
-  carry_ = bits::high(prev) > bits::high(sp_);
+  Word result = sp_ + byte;
+  carry_ = (sp_ ^ byte ^ result) & 0x100;
+  half_carry_ = (sp_ ^ byte ^ result) & 0x10;
+  sp_ = result;
 
   return 16;
 }
@@ -970,7 +1007,7 @@ int CPU::shiftRightLogical(Byte& byte) {
 }
 
 int CPU::shiftRight(Byte& byte) {
-  bool msb = byte & 0x80;
+  Byte msb = byte & 0x80;
   carry_ = byte & 1;
   byte >>= 1;
   byte |= msb;

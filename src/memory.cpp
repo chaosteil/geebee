@@ -155,10 +155,6 @@ void Memory::write(Word address, Byte byte) {
     if (!oam_access_) return;
     sat_[address - 0xFE00] = byte;
 
-    // Not Usable
-  } else if (in(address, 0xFEA0, 0xFEFF)) {
-    throw std::runtime_error("Writing Not Usable Memory");
-
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
     io_[address - 0xFF00] = byte;
@@ -173,6 +169,10 @@ void Memory::write(Word address, Byte byte) {
     // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
     io_.back() = byte;
+
+    // Not Usable
+  } else if (in(address, 0xFEA0, 0xFEFF)) {
+    throw std::runtime_error("Writing Not Usable Memory " + std::to_string(address));
 
   } else {
     throw std::runtime_error("Completely invalid address " +
