@@ -495,7 +495,7 @@ void CPU::setupCbOpcodes() {
     cb_opcodes_[0x43 + i * 8] = [i, this]() { return handleBit(i, e_); };
     cb_opcodes_[0x44 + i * 8] = [i, this]() { return handleBit(i, h_); };
     cb_opcodes_[0x45 + i * 8] = [i, this]() { return handleBit(i, l_); };
-    cb_opcodes_[0x46 + i * 8] = [hl, i, this]() { return handleBit(i, memory_.read(hl())) + 8; };
+    cb_opcodes_[0x46 + i * 8] = [hl, i, this]() { return handleBit(i, memory_.read(hl())) + 4; };
     cb_opcodes_[0x47 + i * 8] = [i, this]() { return handleBit(i, a_); };
   }
   for (int i = 0; i < 8; i++) {

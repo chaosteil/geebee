@@ -18,7 +18,7 @@ void Timer::advance(int timing) {
   }
 
   divider_ += timing;
-  if (divider_ >= clocks_[0]) {
+  while (divider_ >= clocks_[0]) {
     divider_ -= clocks_[0];
     Byte divider = memory_.read(Register::Divider);
     divider++;
@@ -27,7 +27,7 @@ void Timer::advance(int timing) {
 
   counter_ += timing;
   int current_clock = clocks_[control & 0x03];
-  if (counter_ >= current_clock) {
+  while (counter_ >= current_clock) {
     counter_ -= clocks_[control & 0x03];
     Byte counter = memory_.read(Register::Counter);
     counter++;

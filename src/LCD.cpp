@@ -79,10 +79,10 @@ void LCD::advance(int timing) {
 }
 
 LCD::SpriteInfo::SpriteInfo(const Memory& memory, int id)
-    : x(memory.read(0x8000 + id * 4 + 0)),
-      y(memory.read(0x8000 + id * 4 + 1)),
-      tile(memory.read(0x8000 + id * 4 + 2)),
-      flags(memory.read(0x8000 + id * 4 + 3)) {}
+    : x(memory.read(0xFE00 + id * 4 + 1)),
+      y(memory.read(0xFE00 + id * 4 + 0)),
+      tile(memory.read(0xFE00 + id * 4 + 2)),
+      flags(memory.read(0xFE00 + id * 4 + 3)) {}
 
 void LCD::drawLine(int ly) {
   if (ly >= 144) return;
@@ -123,9 +123,12 @@ void LCD::drawLine(int ly) {
     int pixel_y = y % 8;
 
     Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
-    int offset = signed_tile ? (SByte)tile : tile;
-    Byte bottom = memory_.read(bg_tile_data + offset * 16 + (pixel_y * 2));
-    Byte top = memory_.read(bg_tile_data + offset * 16 + (pixel_y * 2) + 1);
+    int offset = tile;
+    if (!signed_tile) {
+      offset = (SByte)tile;
+    } 
+    Byte bottom = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2));
+    Byte top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
 
     Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
     pixels[ly * 160 + i] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
@@ -151,6 +154,19 @@ void LCD::drawLine(int ly) {
 
   int size = std::min(10, (int)sprites.size());
   for (int i = 0; i < size; i++) {
+    SpriteInfo& info = sprites[i];
+    int pixel_y = ((int)info.y + ly - 16) % 8;
+    for (int x = 0; x < 8; x++) {
+      int pixel_x = 7 - (info.x + x) % 8;
+
+      Byte bottom = memory_.read(0x8000 + (info.tile * 16) + (pixel_y * 2));
+      Byte top = memory_.read(0x8000 + (info.tile * 16) + (pixel_y * 2) + 1);
+
+      Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
+      Byte pixel = palette(obp, color_number(pixel_x, top, bottom));
+
+      pixels[ly * 160 + info.x + x] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
+    }
   }*/
 }
 

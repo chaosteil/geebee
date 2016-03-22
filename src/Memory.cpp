@@ -79,12 +79,9 @@ Byte Memory::read(Word address) const {
   } else if (in(address, 0xFE00, 0xFE9F)) {
     return oam_access_ ? sat_[address - 0xFE00] : 0x00;
 
-    // Not Usable
-  } else if (in(address, 0xFEA0, 0xFEFF)) {
-    throw std::runtime_error("Reading Not Usable Memory");
-
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
+    if (address == 0xFF00) return 0xEF;
     return io_[address - 0xFF00];
 
     // High RAM (HRAM)
@@ -94,6 +91,11 @@ Byte Memory::read(Word address) const {
     // Interrupt Enable Register
   } else if (in(address, 0xFFFF, 0xFFFF)) {
     return io_.back();
+
+    // Not Usable
+  } else if (in(address, 0xFEA0, 0xFEFF)) {
+    return 0x00;
+    //throw std::runtime_error("Reading Not Usable Memory");
 
   } else {
     throw std::runtime_error("Completely invalid address " +
@@ -173,7 +175,7 @@ void Memory::write(Word address, Byte byte) {
 
     // Not Usable
   } else if (in(address, 0xFEA0, 0xFEFF)) {
-    throw std::runtime_error("Writing Not Usable Memory " + std::to_string(address));
+    //throw std::runtime_error("Writing Not Usable Memory " + std::to_string(address));
 
   } else {
     throw std::runtime_error("Completely invalid address " +
