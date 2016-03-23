@@ -23,8 +23,6 @@ CPU::CPU(Window& window, const Program& program)
   reset();
 }
 
-CPU::~CPU() {}
-
 void CPU::reset() {
   memory_.reset();
 
@@ -84,12 +82,16 @@ void CPU::step() {
 }
 
 void CPU::printState() {
-  std::cout << std::hex << "AF: " << (int)a_ << " " << (int)f_ << " "
-            << "BC: " << (int)b_ << " " << (int)c_ << " "
-            << "DE: " << (int)d_ << " " << (int)e_ << " "
-            << "HL: " << (int)h_ << " " << (int)l_ << " "
-            << "SP: " << (int)sp_ << " "
-            << "PC: " << (int)pc_ << " " << std::dec
+  std::cout << std::hex << "AF: " << static_cast<int>(a_) << " "
+            << static_cast<int>(f_) << " "
+            << "BC: " << static_cast<int>(b_) << " " << static_cast<int>(c_)
+            << " "
+            << "DE: " << static_cast<int>(d_) << " " << static_cast<int>(e_)
+            << " "
+            << "HL: " << static_cast<int>(h_) << " " << static_cast<int>(l_)
+            << " "
+            << "SP: " << static_cast<int>(sp_) << " "
+            << "PC: " << static_cast<int>(pc_) << " " << std::dec
             << " F: " << (zero_ ? "Zero " : "") << (add_ ? "Add " : "")
             << (half_carry_ ? "Half " : "") << (carry_ ? "Carry " : "")
             << std::endl;
@@ -101,7 +103,9 @@ int CPU::readInstruction() {
   int timing = handleOpcode(op);
   serializeFlags();
 
-  if (output_) printState();
+  if (output_) {
+    printState();
+  }
 
   return timing;
 }
@@ -133,4 +137,4 @@ void CPU::deserializeFlags() {
   f_ &= 0xF0;
 }
 
-}
+}  // namespace gb

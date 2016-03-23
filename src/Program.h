@@ -1,5 +1,5 @@
-#ifndef GEEBEE_PROGRAM_H_
-#define GEEBEE_PROGRAM_H_
+#ifndef __GEEBEE_SRC_PROGRAM_H
+#define __GEEBEE_SRC_PROGRAM_H
 
 #include <string>
 
@@ -9,9 +9,9 @@ namespace gb {
 
 class Program {
  public:
-  Program(const std::string& rom_filename,
-          const std::string& bootrom_filename = "");
-  ~Program();
+  explicit Program(const std::string& rom_filename,
+                   const std::string& bootrom_filename = "");
+  ~Program() = default;
 
   const std::string& title() const { return title_; }
   int type() const { return type_; }
@@ -32,6 +32,7 @@ class Program {
   int rom_size_{0};
   int ram_size_{0};
 };
-}
+
+}  // namespace gb
 
 #endif

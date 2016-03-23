@@ -1,5 +1,5 @@
-#ifndef GEEBEE_CPU_H_
-#define GEEBEE_CPU_H_
+#ifndef __GEEBEE_SRC_CPU_H
+#define __GEEBEE_SRC_CPU_H
 
 #include <array>
 #include <functional>
@@ -18,7 +18,7 @@ class Window;
 class CPU {
  public:
   CPU(Window& lcd, const Program& program);
-  ~CPU();
+  ~CPU() = default;
 
   Memory& memory() { return memory_; }
   void reset();
@@ -117,6 +117,7 @@ class CPU {
 
   bool output_{false};
 };
-}
+
+}  // namespace gb
 
 #endif

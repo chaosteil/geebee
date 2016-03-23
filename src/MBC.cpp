@@ -196,4 +196,5 @@ void MBC::selectModeSpecificSelect(Byte byte) {
 }
 
 void MBC::selectModeSelect(Byte byte) { ram_banking_ = byte & 0x01; }
-}
+
+}  // namespace gb

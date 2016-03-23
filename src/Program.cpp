@@ -36,5 +36,4 @@ Program::Program(const string& rom_filename, const string& bootrom_filename) {
   ram_size_ = rom_[0x0149];
 }
 
-Program::~Program() {}
-}
+}  // namespace gb

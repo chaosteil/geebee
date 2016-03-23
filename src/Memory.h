@@ -1,5 +1,5 @@
-#ifndef GEEBEE_MEMORY_H_
-#define GEEBEE_MEMORY_H_
+#ifndef __GEEBEE_SRC_MEMORY_H
+#define __GEEBEE_SRC_MEMORY_H
 
 #include "MBC.h"
 #include "types.h"
@@ -18,7 +18,7 @@ class Memory {
     InterruptEnable = 0xFFFF
   };
 
-  Memory(const Program& program);
+  explicit Memory(const Program& program);
   ~Memory() = default;
 
   const Bytes& ram() const { return ram_; }
@@ -58,6 +58,7 @@ class Memory {
   Bytes io_;
   Bytes hram_;
 };
-}
+
+}  // namespace gb
 
 #endif

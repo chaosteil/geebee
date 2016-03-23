@@ -49,7 +49,7 @@ void setLowBit(Word& value, int bit, bool flag) { setBit(value, bit, flag); }
 
 void setHigh(Word& value, Byte high) {
   value &= 0xFF;
-  value |= (Word)(high) << 8;
+  value |= static_cast<Word>(high) << 8;
 }
 
 void setLow(Word& value, Byte low) {
@@ -76,5 +76,6 @@ Word dec(Byte& high, Byte& low) {
 
   return value;
 }
-}
-}
+
+}  // namespace bits
+}  // namespace gb

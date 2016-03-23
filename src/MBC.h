@@ -1,5 +1,5 @@
-#ifndef GEEBEE_MBC_H_
-#define GEEBEE_MBC_H_
+#ifndef __GEEBEE_SRC_MBC_H
+#define __GEEBEE_SRC_MBC_H
 
 #include "types.h"
 
@@ -9,7 +9,7 @@ class Program;
 
 class MBC {
  public:
-  MBC(const Program& program);
+  explicit MBC(const Program& program);
   ~MBC() = default;
 
   void reset();
@@ -41,6 +41,7 @@ class MBC {
 
   Bytes ram_;
 };
-}
+
+}  // namespace gb
 
 #endif

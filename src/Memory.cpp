@@ -76,12 +76,16 @@ Byte Memory::read(Word address) const {
     return ram_[address - 0xC000];
 
     // Sprite Attribute Table (OAM)
-  } else if (in(address, 0xFE00, 0xFE9F)) {
+  }
+  if (in(address, 0xFE00, 0xFE9F)) {
     return oam_access_ ? sat_[address - 0xFE00] : 0x00;
 
     // I/O Ports
-  } else if (in(address, 0xFF00, 0xFF7F)) {
-    if (address == 0xFF00) return 0xEF;
+  }
+  if (in(address, 0xFF00, 0xFF7F)) {
+    if (address == 0xFF00) {
+      return 0xEF;
+    }
     return io_[address - 0xFF00];
 
     // High RAM (HRAM)
@@ -95,7 +99,7 @@ Byte Memory::read(Word address) const {
     // Not Usable
   } else if (in(address, 0xFEA0, 0xFEFF)) {
     return 0x00;
-    //throw std::runtime_error("Reading Not Usable Memory");
+    // throw std::runtime_error("Reading Not Usable Memory");
 
   } else {
     throw std::runtime_error("Completely invalid address " +
@@ -120,7 +124,9 @@ void Memory::write(Word address, Byte byte) {
     // 8kB Video RAM (VRAM)
     case 0x8000:
     case 0x9000:
-      if (!vram_access_) return;
+      if (!vram_access_) {
+        return;
+      }
       vram_[address - 0x8000] = byte;
       return;
 
@@ -155,7 +161,9 @@ void Memory::write(Word address, Byte byte) {
 
     // Sprite Attribute Table (OAM)
   } else if (in(address, 0xFE00, 0xFE9F)) {
-    if (!oam_access_) return;
+    if (!oam_access_) {
+      return;
+    }
     sat_[address - 0xFE00] = byte;
 
     // I/O Ports
@@ -175,7 +183,8 @@ void Memory::write(Word address, Byte byte) {
 
     // Not Usable
   } else if (in(address, 0xFEA0, 0xFEFF)) {
-    //throw std::runtime_error("Writing Not Usable Memory " + std::to_string(address));
+    // throw std::runtime_error("Writing Not Usable Memory " +
+    // std::to_string(address));
 
   } else {
     throw std::runtime_error("Completely invalid address " +
@@ -186,4 +195,5 @@ void Memory::write(Word address, Byte byte) {
 int Memory::in(Word address, Word from, Word to) {
   return address >= from && address <= to;
 }
-}
+
+}  // namespace gb

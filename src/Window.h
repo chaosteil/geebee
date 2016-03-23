@@ -1,5 +1,5 @@
-#ifndef GEEBEE_WINDOW_H_
-#define GEEBEE_WINDOW_H_
+#ifndef __GEEBEE_SRC_WINDOW_H
+#define __GEEBEE_SRC_WINDOW_H
 
 #include <memory>
 #include <string>
@@ -15,8 +15,8 @@ namespace gb {
 
 class Window {
  public:
-  Window(const std::string& title = "GeeBee");
-  ~Window();
+  explicit Window(const std::string& title = "GeeBee");
+  ~Window() = default;
 
   std::weak_ptr<SDL_Surface> surface() const { return surface_; }
 
@@ -31,6 +31,7 @@ class Window {
 
   SDL_Rect position_;
 };
-}
+
+}  // namespace gb
 
 #endif

@@ -41,4 +41,5 @@ void Timer::advance(int timing) {
     memory_.write(Register::Counter, counter);
   }
 }
-}
+
+}  // namespace gb

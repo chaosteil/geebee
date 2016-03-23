@@ -1,16 +1,17 @@
-#ifndef GEEBEE_TIMER_H_
-#define GEEBEE_TIMER_H_
+#ifndef __GEEBEE_SRC_TIMER_H
+#define __GEEBEE_SRC_TIMER_H
 
 #include <array>
 
 #include "types.h"
 
 namespace gb {
+
 class Memory;
 
 class Timer {
  public:
-  Timer(Memory& memory);
+  explicit Timer(Memory& memory);
   ~Timer() = default;
 
   void advance(int timing);
@@ -29,6 +30,7 @@ class Timer {
   int divider_{0};
   int counter_{0};
 };
-}
+
+}  // namespace gb
 
 #endif

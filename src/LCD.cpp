@@ -31,7 +31,8 @@ void LCD::advance(int timing) {
       enabled_ = false;
     }
     return;
-  } else if (!enabled_) {
+  }
+  if (!enabled_) {
     setMode(Mode::OAM);
     mode_timing_ = 0;
     enabled_ = true;
@@ -85,7 +86,9 @@ LCD::SpriteInfo::SpriteInfo(const Memory& memory, int id)
       flags(memory.read(0xFE00 + id * 4 + 3)) {}
 
 void LCD::drawLine(int ly) {
-  if (ly >= 144) return;
+  if (ly >= 144) {
+    return;
+  }
   Byte bgp_data = memory_.read(Register::Bgp);
   Byte obp0_data = memory_.read(Register::Obp0);
   Byte obp1_data = memory_.read(Register::Obp1);
@@ -107,11 +110,11 @@ void LCD::drawLine(int ly) {
 
   bool signed_tile = bits::bit(lcdc, 4);
   Word bg_tile_data = !signed_tile ? 0x9000 : 0x8000;
-  Word bg_tile_map = bits::bit(lcdc, 3) == false ? 0x9800 : 0x9C00;
+  Word bg_tile_map = !bits::bit(lcdc, 3) ? 0x9800 : 0x9C00;
 
   auto surface = window_.surface().lock();
   auto format = surface->format;
-  auto pixels = (uint32_t*)surface->pixels;
+  auto pixels = reinterpret_cast<uint32_t*>(surface->pixels);
 
   // BG
   int y = (ly + scy) % 256;
@@ -125,8 +128,8 @@ void LCD::drawLine(int ly) {
     Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
     int offset = tile;
     if (!signed_tile) {
-      offset = (SByte)tile;
-    } 
+      offset = static_cast<SByte>(tile);
+    }
     Byte bottom = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2));
     Byte top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
 
@@ -178,13 +181,15 @@ void LCD::resetInterruptFlags() {
 }
 
 void LCD::setMode(Mode mode) {
-  if (mode == mode_) return;
+  if (mode == mode_) {
+    return;
+  }
   mode_ = mode;
 
   Byte stat = memory_.read(Register::Stat);
   // Write current mode
   stat &= 0xFC;
-  stat |= (int)mode_ & 0x03;
+  stat |= static_cast<int>(mode_) & 0x03;
 
   // Request interrupt for mode if available
   Byte interrupts = memory_.read(Memory::Register::InterruptFlag);
@@ -193,7 +198,7 @@ void LCD::setMode(Mode mode) {
       (mode == Mode::OAM && bits::bit(stat, 5))) {
     bits::setBit(interrupts, 1, true);
   }
-  if ((mode == Mode::VBlank)) {
+  if (mode == Mode::VBlank) {
     bits::setBit(interrupts, 0, true);
     done_frame_ = true;
   }
@@ -206,7 +211,9 @@ void LCD::updateMemoryAccess() {
   memory_.setOAMAccess(true);
   memory_.setVRAMAccess(true);
 
-  if (!enabled_) return;
+  if (!enabled_) {
+    return;
+  }
 
   if (mode_ == Mode::OAM) {
     memory_.setOAMAccess(false);
@@ -223,4 +230,5 @@ void LCD::updateLyc() {
   Byte stat = memory_.read(Register::Stat);
   bits::setBit(stat, 2, ly == lyc);
 }
-}
+
+}  // namespace gb

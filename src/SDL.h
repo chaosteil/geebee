@@ -1,5 +1,5 @@
-#ifndef GEEBEE_SDL_H_
-#define GEEBEE_SDL_H_
+#ifndef __GEEBEE_SRC_SDL_H
+#define __GEEBEE_SRC_SDL_H
 
 namespace gb {
 class SDL {
@@ -7,6 +7,7 @@ class SDL {
   SDL();
   ~SDL();
 };
-}
+
+}  // namespace gb
 
 #endif

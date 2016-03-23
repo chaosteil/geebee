@@ -1,5 +1,5 @@
-#ifndef GEEBEE_BITS_H_
-#define GEEBEE_BITS_H_
+#ifndef __GEEBEE_SRC_BITS_H
+#define __GEEBEE_SRC_BITS_H
 
 #include "types.h"
 
@@ -26,7 +26,8 @@ void setLow(Word& value, Byte low);
 
 Word inc(Byte& high, Byte& low);
 Word dec(Byte& high, Byte& low);
-}
-}
+
+}  // namespace bits
+}  // namespace gb
 
 #endif

@@ -10,4 +10,5 @@ SDL::SDL() {
 }
 
 SDL::~SDL() { SDL_Quit(); }
-}
+
+}  // namespace gb

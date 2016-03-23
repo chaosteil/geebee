@@ -24,9 +24,13 @@ Window::Window(const std::string& title)
 bool Window::handleEvents() {
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
-    if (e.type == SDL_QUIT) return true;
+    if (e.type == SDL_QUIT) {
+      return true;
+    }
     if (e.type == SDL_KEYDOWN) {
-      if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) return true;
+      if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
+        return true;
+      }
     }
   }
 
@@ -35,10 +39,13 @@ bool Window::handleEvents() {
 
 void Window::draw() {
   SDL_UpdateTexture(texture_.get(), NULL, surface_->pixels, surface_->pitch);
-  if (SDL_RenderClear(renderer_.get())) return;
-  if (SDL_RenderCopy(renderer_.get(), texture_.get(), &position_, NULL)) return;
+  if (SDL_RenderClear(renderer_.get())) {
+    return;
+  }
+  if (SDL_RenderCopy(renderer_.get(), texture_.get(), &position_, NULL)) {
+    return;
+  }
   SDL_RenderPresent(renderer_.get());
 }
 
-Window::~Window() {}
-}
+}  // namespace gb

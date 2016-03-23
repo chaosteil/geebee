@@ -1,5 +1,5 @@
-#ifndef GEEBEE_LCD_H_
-#define GEEBEE_LCD_H_
+#ifndef __GEEBEE_SRC_LCD_H
+#define __GEEBEE_SRC_LCD_H
 
 #include <array>
 
@@ -61,6 +61,7 @@ class LCD {
   int mode_timing_{0};
   bool done_frame_{true};
 };
-}
+
+}  // namespace gb
 
 #endif

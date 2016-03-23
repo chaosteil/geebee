@@ -553,9 +553,8 @@ int CPU::jumpRelative8Data(bool jump) {
   if (jump) {
     pc_ += address;
     return 12;
-  } else {
-    return 8;
   }
+  return 8;
 }
 
 int CPU::jump16Data(bool jump) {
@@ -566,9 +565,8 @@ int CPU::jump16Data(bool jump) {
   if (jump) {
     pc_ = word;
     return 16;
-  } else {
-    return 12;
   }
+  return 12;
 }
 
 int CPU::call16Data(bool jump) {
@@ -580,9 +578,8 @@ int CPU::call16Data(bool jump) {
     push(bits::high(pc_), bits::low(pc_));
     pc_ = word;
     return 24;
-  } else {
-    return 12;
   }
+  return 12;
 }
 
 int CPU::ret(bool jump) {
@@ -591,9 +588,8 @@ int CPU::ret(bool jump) {
     pop(high, low);
     pc_ = bits::assemble(high, low);
     return 20;
-  } else {
-    return 8;
   }
+  return 8;
 }
 
 int CPU::inc(Byte& byte) {
@@ -890,11 +886,19 @@ int CPU::daa() {
   int a = a_;
 
   if (!add_) {
-    if ((a & 0x0F) > 0x09 || half_carry_) a += 0x06;
-    if (a > 0x9F || carry_) a += 0x60;
+    if ((a & 0x0F) > 0x09 || half_carry_) {
+      a += 0x06;
+    }
+    if (a > 0x9F || carry_) {
+      a += 0x60;
+    }
   } else {
-    if (half_carry_) a = (a - 0x06) & 0xFF;
-    if (carry_) a -= 0x60;
+    if (half_carry_) {
+      a = (a - 0x06) & 0xFF;
+    }
+    if (carry_) {
+      a -= 0x60;
+    }
   }
 
   half_carry_ = false;
@@ -909,4 +913,5 @@ int CPU::daa() {
 
   return 4;
 }
-}
+
+}  // namespace gb
