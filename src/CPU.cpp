@@ -71,7 +71,7 @@ void CPU::step() {
         break;
       }
     }
-  } else if (!interrupts_ && hasInterrupt && halt_) {
+  } else if (!interrupts_ && iFlag && halt_) {
     halt_ = false;
   } else if (!halt_) {
     timing = readInstruction();
