@@ -117,24 +117,30 @@ void LCD::drawLine(int ly) {
   auto pixels = reinterpret_cast<uint32_t*>(surface->pixels);
 
   // BG
-  int y = (ly + scy) % 256;
-  for (int i = 0; i < 160; i++) {
-    int x = (i + scx) % 256;
-    int tile_x = x / 8;
-    int tile_y = y / 8;
-    int pixel_x = 7 - x % 8;
-    int pixel_y = y % 8;
+  if (bits::bit(lcdc, 0)) {
+    int y = (ly + scy) % 256;
+    for (int i = 0; i < 160; i++) {
+      int x = (i + scx) % 256;
+      int tile_x = x / 8;
+      int tile_y = y / 8;
+      int pixel_x = 7 - x % 8;
+      int pixel_y = y % 8;
 
-    Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
-    int offset = tile;
-    if (!signed_tile) {
-      offset = static_cast<SByte>(tile);
+      Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
+      int offset = tile;
+      if (!signed_tile) {
+        offset = static_cast<SByte>(tile);
+      }
+      Byte bottom = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2));
+      Byte top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
+
+      Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
+      pixels[ly * 160 + i] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
     }
-    Byte bottom = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2));
-    Byte top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
-
-    Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
-    pixels[ly * 160 + i] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
+  } else {
+    for (int i = 0; i < 160; i++) {
+      pixels[ly * 160 + i] = SDL_MapRGBA(format, 255, 255, 255, 255);
+    }
   }
 
   // OBJ
@@ -168,7 +174,8 @@ void LCD::drawLine(int ly) {
       Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
       Byte pixel = palette(obp, color_number(pixel_x, top, bottom));
 
-      pixels[ly * 160 + info.x + x] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
+      pixels[ly * 160 + info.x + x] = SDL_MapRGBA(format, pixel, pixel, pixel,
+  255);
     }
   }*/
 }
@@ -229,6 +236,12 @@ void LCD::updateLyc() {
 
   Byte stat = memory_.read(Register::Stat);
   bits::setBit(stat, 2, ly == lyc);
+
+  if (ly == lyc) {
+    Byte interrupts = memory_.read(Memory::Register::InterruptFlag);
+    bits::setBit(interrupts, 1, true);
+    memory_.write(Memory::Register::InterruptFlag, interrupts);
+  }
 }
 
 }  // namespace gb
