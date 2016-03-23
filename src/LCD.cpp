@@ -138,39 +138,43 @@ void LCD::drawLine(int ly) {
   }
 
   // OBJ
-  /*
   std::vector<SpriteInfo> sprites;
   for (int i = 0; i < 40; i++) {
     sprites.push_back(SpriteInfo{memory_, i});
   }
+  // Remove all sprites from consideration for this line if they don't fit in y
   sprites.erase(std::remove_if(std::begin(sprites), std::end(sprites),
                                [ly](const SpriteInfo& sprite) {
-                                 return sprite.y > 0 && sprite.y < 160 &&
-                                        ly < sprite.y &&
-                                        ((int)ly + 16) > sprite.y;
+                                 return sprite.y == 0 || sprite.y >= 160 ||
+                                        ly < sprite.y - 16 ||
+                                        ly >= sprite.y - 8;
                                }),
                 sprites.end());
+  // Sort all leftover sprites by x coordinate
   std::sort(std::begin(sprites), std::end(sprites),
             [](const SpriteInfo& left, const SpriteInfo& right) {
               return left.x < right.x;
             });
 
+  // Keep at most 10 sprites
   int size = std::min(10, (int)sprites.size());
+  // Draw them!
   for (int i = 0; i < size; i++) {
     SpriteInfo& info = sprites[i];
     int pixel_y = ((int)info.y + ly - 16) % 8;
     for (int x = 0; x < 8; x++) {
-      int pixel_x = 7 - (info.x + x) % 8;
+      int pixel_x = 7 - x % 8;
 
-      Byte bottom = memory_.read(0x8000 + (info.tile * 16) + (pixel_y * 2));
-      Byte top = memory_.read(0x8000 + (info.tile * 16) + (pixel_y * 2) + 1);
+      Byte bottom = memory_.read(0x8000 + ((int)info.tile * 16) + (pixel_y * 2));
+      Byte top = memory_.read(0x8000 + ((int)info.tile * 16) + (pixel_y * 2) + 1);
 
       Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
       Byte pixel = palette(obp, color_number(pixel_x, top, bottom));
 
-      window_.setPixel(info.x + x, ly, pixel);
+      if (pixel != 0xFF && info.x + x - 8 >= 0)
+        window_.setPixel(info.x + x - 8, ly, pixel);
     }
-  }*/
+  }
 }
 
 void LCD::resetInterruptFlags() {

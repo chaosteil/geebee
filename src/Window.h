@@ -18,7 +18,6 @@ class Window {
   explicit Window(const std::string& title = "GeeBee");
   ~Window() = default;
 
-  std::weak_ptr<SDL_Surface> surface() const { return surface_; }
   void setPixel(int x, int y, int color);
 
   bool handleEvents();

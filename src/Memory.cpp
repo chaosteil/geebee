@@ -168,6 +168,15 @@ void Memory::write(Word address, Byte byte) {
 
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
+    // TODO: Move this DMA handling to LCD
+    if (address == 0xFF46) {
+      Word source_start = byte << 8 | 0x00;
+      Word source_end = byte << 8 | 0x9F;
+      Word destination = 0xFE00;
+      for (Word i = source_start; i <= source_end; i++, destination++) {
+        write(destination, read(i));
+      }
+    }
     io_[address - 0xFF00] = byte;
 
     if (address == Register::BootMode && byte != 0x0) {
