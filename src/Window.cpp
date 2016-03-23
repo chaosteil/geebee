@@ -21,6 +21,12 @@ Window::Window(const std::string& title)
                SDL_MapRGBA(surface_->format, 255, 255, 255, 255));
 }
 
+void Window::setPixel(int x, int y, int color) {
+  auto format = surface_->format;
+  auto pixels = reinterpret_cast<uint32_t*>(surface_->pixels);
+  pixels[y * 160 + x] = SDL_MapRGBA(format, color, color, color, 255);
+}
+
 bool Window::handleEvents() {
   SDL_Event e;
   while (SDL_PollEvent(&e)) {

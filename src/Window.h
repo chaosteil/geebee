@@ -19,6 +19,7 @@ class Window {
   ~Window() = default;
 
   std::weak_ptr<SDL_Surface> surface() const { return surface_; }
+  void setPixel(int x, int y, int color);
 
   bool handleEvents();
   void draw();

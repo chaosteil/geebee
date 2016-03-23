@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include <SDL2/SDL.h>
-
 #include "Memory.h"
 #include "Window.h"
 #include "bits.h"
@@ -112,10 +110,6 @@ void LCD::drawLine(int ly) {
   Word bg_tile_data = !signed_tile ? 0x9000 : 0x8000;
   Word bg_tile_map = !bits::bit(lcdc, 3) ? 0x9800 : 0x9C00;
 
-  auto surface = window_.surface().lock();
-  auto format = surface->format;
-  auto pixels = reinterpret_cast<uint32_t*>(surface->pixels);
-
   // BG
   if (bits::bit(lcdc, 0)) {
     int y = (ly + scy) % 256;
@@ -135,11 +129,11 @@ void LCD::drawLine(int ly) {
       Byte top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
 
       Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
-      pixels[ly * 160 + i] = SDL_MapRGBA(format, pixel, pixel, pixel, 255);
+      window_.setPixel(i, ly, pixel);
     }
   } else {
     for (int i = 0; i < 160; i++) {
-      pixels[ly * 160 + i] = SDL_MapRGBA(format, 255, 255, 255, 255);
+      window_.setPixel(i, ly, 255);
     }
   }
 
@@ -174,8 +168,7 @@ void LCD::drawLine(int ly) {
       Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
       Byte pixel = palette(obp, color_number(pixel_x, top, bottom));
 
-      pixels[ly * 160 + info.x + x] = SDL_MapRGBA(format, pixel, pixel, pixel,
-  255);
+      window_.setPixel(info.x + x, ly, pixel);
     }
   }*/
 }
