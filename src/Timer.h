@@ -1,5 +1,5 @@
-#ifndef __GEEBEE_SRC_TIMER_H
-#define __GEEBEE_SRC_TIMER_H
+#ifndef GEEBEE_SRC_TIMER_H
+#define GEEBEE_SRC_TIMER_H
 
 #include <array>
 

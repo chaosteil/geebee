@@ -1,5 +1,5 @@
-#ifndef __GEEBEE_SRC_PROGRAM_H
-#define __GEEBEE_SRC_PROGRAM_H
+#ifndef GEEBEE_SRC_PROGRAM_H
+#define GEEBEE_SRC_PROGRAM_H
 
 #include <string>
 

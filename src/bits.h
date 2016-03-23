@@ -1,5 +1,5 @@
-#ifndef __GEEBEE_SRC_BITS_H
-#define __GEEBEE_SRC_BITS_H
+#ifndef GEEBEE_SRC_BITS_H
+#define GEEBEE_SRC_BITS_H
 
 #include "types.h"
 

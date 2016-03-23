@@ -1,5 +1,5 @@
-#ifndef __GEEBEE_SRC_LCD_H
-#define __GEEBEE_SRC_LCD_H
+#ifndef GEEBEE_SRC_LCD_H
+#define GEEBEE_SRC_LCD_H
 
 #include <array>
 

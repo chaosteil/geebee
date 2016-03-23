@@ -1,5 +1,5 @@
-#ifndef __GEEBEE_SRC_MBC_H
-#define __GEEBEE_SRC_MBC_H
+#ifndef GEEBEE_SRC_MBC_H
+#define GEEBEE_SRC_MBC_H
 
 #include "types.h"
 

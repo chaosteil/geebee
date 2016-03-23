@@ -1,5 +1,5 @@
-#ifndef __GEEBEE_SRC_TYPES_H
-#define __GEEBEE_SRC_TYPES_H
+#ifndef GEEBEE_SRC_TYPES_H
+#define GEEBEE_SRC_TYPES_H
 
 #include <stdint.h>
 #include <vector>
