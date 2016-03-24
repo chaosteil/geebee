@@ -117,7 +117,7 @@ void LCD::drawLine(int ly) {
       int x = (i + scx) % 256;
       int tile_x = x / 8;
       int tile_y = y / 8;
-      int pixel_x = 7 - x % 8;
+      int pixel_x = 8 - x % 8 - 1;
       int pixel_y = y % 8;
 
       Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
@@ -144,10 +144,9 @@ void LCD::drawLine(int ly) {
   }
   // Remove all sprites from consideration for this line if they don't fit in y
   sprites.erase(std::remove_if(std::begin(sprites), std::end(sprites),
-                               [ly](const SpriteInfo& sprite) {
-                                 return sprite.y == 0 || sprite.y >= 160 ||
-                                        ly < sprite.y - 16 ||
-                                        ly >= sprite.y - 8;
+                               [ly](const SpriteInfo& info) {
+                                 return info.y == 0 || info.y >= 160 ||
+                                        ly < info.y - 16 || ly >= info.y - 8;
                                }),
                 sprites.end());
   // Sort all leftover sprites by x coordinate
@@ -161,12 +160,18 @@ void LCD::drawLine(int ly) {
   // Draw them!
   for (int i = size - 1; i >= 0; i--) {
     SpriteInfo& info = sprites[i];
-    int pixel_y = (static_cast<int>(info.y) + ly - 16) % 8;
+    int pixel_y = ly - info.y + 16;
+    if (bits::bit(info.flags, 6)) {
+      pixel_y = 8 - pixel_y - 1;
+    }
     for (int x = 0; x < 8; x++) {
       if (info.x + x - 8 < 0) {
         continue;
       }
-      int pixel_x = 7 - x % 8;
+      int pixel_x = 8 - x % 8 - 1;
+      if (bits::bit(info.flags, 5)) {
+        pixel_x = 8 - pixel_x - 1;
+      }
 
       Byte bottom = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
                                  (pixel_y * 2));
