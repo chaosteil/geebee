@@ -1,6 +1,6 @@
 before_script:
-  - pip2.7 install --upgrade pip
-  - pip2.7 install conan
+  - sudo pip2.7 install --upgrade pip
+  - sudo pip2.7 install conan
 
 geebee:
   script:
