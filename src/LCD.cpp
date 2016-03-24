@@ -157,22 +157,28 @@ void LCD::drawLine(int ly) {
             });
 
   // Keep at most 10 sprites
-  int size = std::min(10, (int)sprites.size());
+  int size = std::min(10, static_cast<int>(sprites.size()));
   // Draw them!
-  for (int i = 0; i < size; i++) {
+  for (int i = size - 1; i >= 0; i--) {
     SpriteInfo& info = sprites[i];
-    int pixel_y = ((int)info.y + ly - 16) % 8;
+    int pixel_y = (static_cast<int>(info.y) + ly - 16) % 8;
     for (int x = 0; x < 8; x++) {
+      if (info.x + x - 8 < 0) {
+        continue;
+      }
       int pixel_x = 7 - x % 8;
 
-      Byte bottom = memory_.read(0x8000 + ((int)info.tile * 16) + (pixel_y * 2));
-      Byte top = memory_.read(0x8000 + ((int)info.tile * 16) + (pixel_y * 2) + 1);
+      Byte bottom = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
+                                 (pixel_y * 2));
+      Byte top = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
+                              (pixel_y * 2) + 1);
 
       Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
       Byte pixel = palette(obp, color_number(pixel_x, top, bottom));
 
-      if (pixel != 0xFF && info.x + x - 8 >= 0)
+      if (pixel != 0xFF) {
         window_.setPixel(info.x + x - 8, ly, pixel);
+      }
     }
   }
 }

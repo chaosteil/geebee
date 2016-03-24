@@ -7,8 +7,11 @@
 #include <boost/range/adaptors.hpp>
 #include <boost/range/algorithm_ext.hpp>
 
-using namespace std;
 namespace fs = boost::filesystem;
+using std::ifstream;
+using std::ios;
+using std::istreambuf_iterator;
+using std::string;
 
 namespace gb {
 

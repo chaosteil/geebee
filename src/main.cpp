@@ -10,8 +10,10 @@
 #include "SDL.h"
 #include "Window.h"
 
-using namespace std;
 namespace po = boost::program_options;
+using std::cout;
+using std::endl;
+using std::string;
 
 static gb::SDL sdl;
 
