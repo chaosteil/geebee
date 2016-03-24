@@ -1,0 +1,9 @@
+before_script:
+  - pip install conan
+
+geebee:
+  - mkdir build
+  - cd build
+  - conan install ..
+  - cmake ..
+  - make
