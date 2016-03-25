@@ -2,12 +2,12 @@
 #include <string>
 
 #include <boost/program_options.hpp>
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 #include "CPU.h"
 #include "LCD.h"
 #include "Program.h"
-#include "SDL.h"
+#include "SDLManager.h"
 #include "Window.h"
 
 namespace po = boost::program_options;
@@ -15,7 +15,7 @@ using std::cout;
 using std::endl;
 using std::string;
 
-static gb::SDL sdl;
+static gb::SDLManager sdl;
 
 int main(int argc, const char** argv) {
   cout << "GeeBee 0.1" << endl;

@@ -4,7 +4,7 @@
 #include <memory>
 #include <string>
 
-#include <SDL2/SDL_rect.h>
+#include <SDL_rect.h>
 
 struct SDL_Renderer;
 struct SDL_Surface;

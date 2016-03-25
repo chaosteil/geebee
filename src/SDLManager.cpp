@@ -1,14 +1,14 @@
-#include "SDL.h"
+#include "SDLManager.h"
 
-#include <SDL2/SDL.h>
+#include <SDL.h>
 
 namespace gb {
 
-SDL::SDL() {
+SDLManager::SDLManager() {
   SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_GAMECONTROLLER |
            SDL_INIT_EVENTS);
 }
 
-SDL::~SDL() { SDL_Quit(); }
+SDLManager::~SDLManager() { SDL_Quit(); }
 
 }  // namespace gb
