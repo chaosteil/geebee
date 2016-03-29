@@ -9,7 +9,7 @@ You can get more info about conan on [conan.io](https://www.conan.io/).
 
 ```bash
 mkdir build && cd build
-conan install ..
+conan install -s compiler=gcc -s compiler.libcxx=libstdc++11 ..
 cmake ..
 make
 ```

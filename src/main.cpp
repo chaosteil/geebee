@@ -19,7 +19,7 @@ static gb::SDLManager sdl;
 
 int main(int argc, const char** argv) {
   cout << "GeeBee 0.1" << endl;
-  po::options_description desc("Allowed options");
+  po::options_description desc{"Allowed options"};
   desc.add_options()("help,h", "Show the help message")(
       "file,f", po::value<string>(), "The .gb file to read")(
       "bootrom,b", po::value<string>()->default_value(""),
@@ -41,7 +41,7 @@ int main(int argc, const char** argv) {
     return 1;
   }
 
-  gb::Program program(vm["file"].as<string>(), vm["bootrom"].as<string>());
+  gb::Program program{vm["file"].as<string>(), vm["bootrom"].as<string>()};
 
   if (!program.is_valid()) {
     cout << "Invalid rom!" << endl;
@@ -56,7 +56,7 @@ int main(int argc, const char** argv) {
        << program.ram_size() << endl;
 
   gb::Window window;
-  gb::CPU cpu(window, program);
+  gb::CPU cpu{window, program};
   while (true) {
     if (window.handleEvents()) {
       break;

@@ -6,8 +6,8 @@ before_script:
 geebee:
   script:
     - rm -rf build
-    - mkdir build
+    - mkdir -p build
     - cd build
-    - conan install ..
+    - conan install -s compiler=gcc -s compiler.libcxx=libstdc++11 ..
     - cmake ..
-    - make
+    - cmake --build .
