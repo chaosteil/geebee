@@ -33,6 +33,8 @@ class CPU {
   static const std::array<std::string, 0x100> opcode_description_;
   static const std::array<std::string, 0x100> prefix_opcode_description_;
 
+  void initNoboot();
+
   void setupOpcodes();
   void setupCbOpcodes();
   int readInstruction();
