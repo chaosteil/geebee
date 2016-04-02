@@ -28,6 +28,8 @@ TEST_CASE("Emulator passes the test roms", "[testroms]") {
 
     SECTION("CPU instructions are correct") {
       Program program{"roms/cpu_instrs.gb"};
+      REQUIRE(program.rom().size() > 0);
+
       CPU cpu{window, program};
       run_until_done(cpu);
 
@@ -36,6 +38,8 @@ TEST_CASE("Emulator passes the test roms", "[testroms]") {
 
     SECTION("CPU instructions are correctly timed") {
       Program program{"roms/instr_timing.gb"};
+      REQUIRE(program.rom().size() > 0);
+
       CPU cpu{window, program};
       run_until_done(cpu);
 
@@ -44,6 +48,8 @@ TEST_CASE("Emulator passes the test roms", "[testroms]") {
 
     SECTION("Memory instructions are correctly timed") {
       Program program{"roms/mem_timing.gb"};
+      REQUIRE(program.rom().size() > 0);
+
       CPU cpu{window, program};
       run_until_done(cpu);
 
