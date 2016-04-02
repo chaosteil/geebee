@@ -1,4 +1,4 @@
-#include "Window.h"
+#include "SDLWindow.h"
 
 #include <iostream>
 
@@ -6,8 +6,9 @@
 
 namespace gb {
 
-Window::Window(const std::string& title)
-    : window_(SDL_CreateWindow(title.c_str(), 0, 0, 160, 144, SDL_WINDOW_SHOWN),
+SDLWindow::SDLWindow(const std::string& title)
+    : Window(),
+      window_(SDL_CreateWindow(title.c_str(), 0, 0, 160, 144, SDL_WINDOW_SHOWN),
               [](SDL_Window* win) { SDL_DestroyWindow(win); }),
       renderer_(SDL_CreateRenderer(window_.get(), -1, SDL_RENDERER_SOFTWARE),
                 [](SDL_Renderer* ren) { SDL_DestroyRenderer(ren); }),
@@ -21,13 +22,13 @@ Window::Window(const std::string& title)
                SDL_MapRGBA(surface_->format, 255, 255, 255, 255));
 }
 
-void Window::setPixel(int x, int y, int color) {
+void SDLWindow::setPixel(int x, int y, int color) {
   auto format = surface_->format;
   auto pixels = reinterpret_cast<uint32_t*>(surface_->pixels);
   pixels[y * 160 + x] = SDL_MapRGBA(format, color, color, color, 255);
 }
 
-bool Window::handleEvents() {
+bool SDLWindow::handleEvents() {
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
     if (e.type == SDL_QUIT) {
@@ -43,7 +44,7 @@ bool Window::handleEvents() {
   return false;
 }
 
-void Window::draw() {
+void SDLWindow::draw() {
   SDL_UpdateTexture(texture_.get(), NULL, surface_->pixels, surface_->pitch);
   if (SDL_RenderClear(renderer_.get())) {
     return;

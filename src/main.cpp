@@ -8,7 +8,7 @@
 #include "LCD.h"
 #include "Program.h"
 #include "SDLManager.h"
-#include "Window.h"
+#include "SDLWindow.h"
 
 namespace po = boost::program_options;
 using std::cout;
@@ -55,7 +55,7 @@ int main(int argc, const char** argv) {
   cout << "info: " << program.type() << " " << program.rom_size() << " "
        << program.ram_size() << endl;
 
-  gb::Window window;
+  gb::SDLWindow window;
   gb::CPU cpu{window, program};
   while (true) {
     if (window.handleEvents()) {

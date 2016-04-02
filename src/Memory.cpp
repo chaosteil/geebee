@@ -176,6 +176,8 @@ void Memory::write(Word address, Byte byte) {
       for (Word i = source_start; i <= source_end; i++, destination++) {
         write(destination, read(i));
       }
+    } else if (address == 0xFF02) {
+      serial_data_.push_back(io_[Register::SerialTransferData - 0xFF00]);
     }
     io_[address - 0xFF00] = byte;
 
