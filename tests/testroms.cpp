@@ -10,7 +10,7 @@
 using namespace gb;
 using namespace std;
 
-TEST_CASE("Emulator passes the test roms", "[testroms],[!mayfail]") {
+TEST_CASE("Emulator passes the test roms", "[testroms]") {
   Window window;
 
   auto run_until_done = [](CPU& cpu) {
