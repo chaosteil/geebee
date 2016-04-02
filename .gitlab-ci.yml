@@ -11,4 +11,4 @@ geebee:
     - conan install -s compiler=gcc -s compiler.libcxx=libstdc++11 ..
     - cmake ..
     - cmake --build .
-    - ctest -VV
+    - ctest -V
