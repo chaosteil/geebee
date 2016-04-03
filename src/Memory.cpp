@@ -87,10 +87,6 @@ Byte Memory::read(Word address) const {
     // I/O Ports
   }
   if (in(address, 0xFF00, 0xFF7F)) {
-    if (address == 0xFF00) {
-      return 0xEF;
-    }
-
     if (io_handling_) {
       return io_[address - 0xFF00];
     } else {

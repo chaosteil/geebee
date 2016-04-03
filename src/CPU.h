@@ -4,6 +4,7 @@
 #include <array>
 #include <functional>
 
+#include "Joypad.h"
 #include "LCD.h"
 #include "Memory.h"
 #include "Timer.h"
@@ -17,10 +18,11 @@ class Window;
 
 class CPU {
  public:
-  CPU(Window& lcd, const Program& program);
+  CPU(Window& window, const Program& program);
   ~CPU() = default;
 
   Memory& memory() { return memory_; }
+  Joypad& joypad() { return joypad_; }
   void reset();
   void cycle();
   void step();
@@ -92,6 +94,7 @@ class CPU {
 
   const Program& program_;
   Memory memory_;
+  Joypad joypad_;
   Timer timer_;
   LCD lcd_;
 

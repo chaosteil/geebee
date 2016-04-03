@@ -16,6 +16,7 @@ namespace gb {
 CPU::CPU(Window& window, const Program& program)
     : program_(program),
       memory_(program_),
+      joypad_(memory_),
       timer_(memory_),
       lcd_(window, memory_) {
   setupOpcodes();

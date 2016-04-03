@@ -1,8 +1,11 @@
 #include "SDLWindow.h"
 
 #include <iostream>
+#include <functional>
 
 #include <SDL.h>
+
+#include "Joypad.h"
 
 namespace gb {
 
@@ -31,7 +34,7 @@ void SDLWindow::setPixel(int x, int y, int color) {
   pixels[y * 160 + x] = SDL_MapRGBA(format, color, color, color, 255);
 }
 
-bool SDLWindow::handleEvents() {
+bool SDLWindow::handleEvents(Joypad& joypad) {
   timer_ = SDL_GetTicks();
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
@@ -41,6 +44,48 @@ bool SDLWindow::handleEvents() {
     if (e.type == SDL_KEYDOWN) {
       if (e.key.keysym.scancode == SDL_SCANCODE_ESCAPE) {
         return true;
+      }
+    }
+
+    if (e.type == SDL_KEYUP || e.type == SDL_KEYDOWN) {
+      std::function<void (Joypad::Key)> key;
+      if (e.type == SDL_KEYDOWN) {
+        key = std::bind(&Joypad::press, &joypad, std::placeholders::_1);
+      } else {  // (e.type == SDL_KEYUP)
+        key = std::bind(&Joypad::release, &joypad, std::placeholders::_1);
+      }
+
+      switch (e.key.keysym.scancode) {
+        case SDL_SCANCODE_W:
+        case SDL_SCANCODE_UP:
+          key(Joypad::Key::Up);
+          break;
+        case SDL_SCANCODE_A:
+        case SDL_SCANCODE_LEFT:
+          key(Joypad::Key::Left);
+          break;
+        case SDL_SCANCODE_D:
+        case SDL_SCANCODE_RIGHT:
+          key(Joypad::Key::Right);
+          break;
+        case SDL_SCANCODE_S:
+        case SDL_SCANCODE_DOWN:
+          key(Joypad::Key::Down);
+          break;
+        case SDL_SCANCODE_RETURN:
+          key(Joypad::Key::Start);
+          break;
+        case SDL_SCANCODE_SPACE:
+          key(Joypad::Key::Select);
+          break;
+        case SDL_SCANCODE_N:
+          key(Joypad::Key::B);
+          break;
+        case SDL_SCANCODE_M:
+          key(Joypad::Key::A);
+          break;
+        default:
+          break;
       }
     }
   }

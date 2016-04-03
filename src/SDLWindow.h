@@ -14,6 +14,9 @@ struct SDL_Texture;
 struct SDL_Window;
 
 namespace gb {
+
+class Joypad;
+
 class SDLWindow : public Window {
  public:
   explicit SDLWindow(const std::string& title = "GeeBee");
@@ -21,7 +24,7 @@ class SDLWindow : public Window {
 
   void setPixel(int x, int y, int color) override;
 
-  bool handleEvents();
+  bool handleEvents(Joypad& joypad);
   void draw();
 
  private:

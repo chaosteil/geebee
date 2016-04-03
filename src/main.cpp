@@ -58,7 +58,7 @@ int main(int argc, const char** argv) {
   gb::SDLWindow window;
   gb::CPU cpu{window, program};
   while (true) {
-    if (window.handleEvents()) {
+    if (window.handleEvents(cpu.joypad())) {
       break;
     }
     cpu.cycle();
