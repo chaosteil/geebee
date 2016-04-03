@@ -12,7 +12,18 @@ class Memory;
 
 class Joypad : public IOHandler {
  public:
-  enum Key : int { Up = 0, Down, Left, Right, Start, Select, A, B, Max };
+  enum Key : int {
+    Up = 0,
+    Down = 1,
+    Left = 2,
+    Right = 3,
+    Start = 4,
+    Select = 5,
+    A = 6,
+    B = 7,
+
+    Max = 8
+  };
 
   Joypad(Memory& memory);
   Joypad(const Joypad& joypad) = delete;
