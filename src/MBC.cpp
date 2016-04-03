@@ -103,7 +103,6 @@ Byte MBC::read(Word address) const {
 
     default:
       throw std::runtime_error("Invalid MBC read");
-      return 0x0;
   }
 }
 

@@ -17,7 +17,7 @@ class LCD : public IOHandler {
   LCD(Window& window, Memory& memory);
   LCD(const LCD& lcd) = delete;
   LCD(LCD&& lcd) = delete;
-  ~LCD();
+  ~LCD() override;
 
   bool doneFrame() const { return done_frame_; }
   void advance(int timing);

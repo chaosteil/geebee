@@ -83,13 +83,11 @@ Byte Memory::read(Word address) const {
     return ram_[address - 0xC000];
 
     // Sprite Attribute Table (OAM)
-  }
-  if (in(address, 0xFE00, 0xFE9F)) {
+  } else if (in(address, 0xFE00, 0xFE9F)) {
     return oam_access_ ? sat_[address - 0xFE00] : 0x00;
 
     // I/O Ports
-  }
-  if (in(address, 0xFF00, 0xFF7F)) {
+  } else if (in(address, 0xFF00, 0xFF7F)) {
     if (!io_handling_) {
       io_handling_ = true;
       IOHandler* handler = io_handlers_[address - 0xFF00];

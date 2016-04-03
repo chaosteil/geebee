@@ -25,7 +25,7 @@ bool Joypad::handlesAddress(Word address) const {
 
 Byte Joypad::read(Word address) {
   Byte byte = memory_.read(address);
-  if (bits::bit(byte, 4) == false) {
+  if (!bits::bit(byte, 4)) {
     bits::setBit(byte, 0, !keys_[Key::Right]);
     bits::setBit(byte, 1, !keys_[Key::Left]);
     bits::setBit(byte, 2, !keys_[Key::Up]);

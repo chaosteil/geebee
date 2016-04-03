@@ -191,7 +191,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x2F] = [&]() { add_ = true; half_carry_ = true; a_ = ~a_; return 4; };
   opcodes_[0x3F] = [&]() { add_ = false; half_carry_ = false; carry_ = !carry_; return 4; };
 
-  opcodes_[0x40] = [&]() { b_ = b_; return 4; };
+  opcodes_[0x40] = [&]() { return 4; };
   opcodes_[0x41] = [&]() { b_ = c_; return 4; };
   opcodes_[0x42] = [&]() { b_ = d_; return 4; };
   opcodes_[0x43] = [&]() { b_ = e_; return 4; };
@@ -200,7 +200,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x46] = [&, hl]() { b_ = memory_.read(hl()); return 8; };
   opcodes_[0x47] = [&]() { b_ = a_; return 4; };
   opcodes_[0x48] = [&]() { c_ = b_; return 4; };
-  opcodes_[0x49] = [&]() { c_ = c_; return 4; };
+  opcodes_[0x49] = [&]() { return 4; };
   opcodes_[0x4A] = [&]() { c_ = d_; return 4; };
   opcodes_[0x4B] = [&]() { c_ = e_; return 4; };
   opcodes_[0x4C] = [&]() { c_ = h_; return 4; };
@@ -210,7 +210,7 @@ void CPU::setupOpcodes() {
 
   opcodes_[0x50] = [&]() { d_ = b_; return 4; };
   opcodes_[0x51] = [&]() { d_ = c_; return 4; };
-  opcodes_[0x52] = [&]() { d_ = d_; return 4; };
+  opcodes_[0x52] = [&]() { return 4; };
   opcodes_[0x53] = [&]() { d_ = e_; return 4; };
   opcodes_[0x54] = [&]() { d_ = h_; return 4; };
   opcodes_[0x55] = [&]() { d_ = l_; return 4; };
@@ -219,7 +219,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x58] = [&]() { e_ = b_; return 4; };
   opcodes_[0x59] = [&]() { e_ = c_; return 4; };
   opcodes_[0x5A] = [&]() { e_ = d_; return 4; };
-  opcodes_[0x5B] = [&]() { e_ = e_; return 4; };
+  opcodes_[0x5B] = [&]() { return 4; };
   opcodes_[0x5C] = [&]() { e_ = h_; return 4; };
   opcodes_[0x5D] = [&]() { e_ = l_; return 4; };
   opcodes_[0x5E] = [&, hl]() { e_ = memory_.read(hl()); return 8; };
@@ -229,7 +229,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x61] = [&]() { h_ = c_; return 4; };
   opcodes_[0x62] = [&]() { h_ = d_; return 4; };
   opcodes_[0x63] = [&]() { h_ = e_; return 4; };
-  opcodes_[0x64] = [&]() { h_ = h_; return 4; };
+  opcodes_[0x64] = [&]() { return 4; };
   opcodes_[0x65] = [&]() { h_ = l_; return 4; };
   opcodes_[0x66] = [&, hl]() { h_ = memory_.read(hl()); return 8; };
   opcodes_[0x67] = [&]() { h_ = a_; return 4; };
@@ -238,7 +238,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x6A] = [&]() { l_ = d_; return 4; };
   opcodes_[0x6B] = [&]() { l_ = e_; return 4; };
   opcodes_[0x6C] = [&]() { l_ = h_; return 4; };
-  opcodes_[0x6D] = [&]() { l_ = l_; return 4; };
+  opcodes_[0x6D] = [&]() { return 4; };
   opcodes_[0x6E] = [&, hl]() { l_ = memory_.read(hl()); return 8; };
   opcodes_[0x6F] = [&]() { l_ = a_; return 4; };
 
@@ -260,7 +260,7 @@ void CPU::setupOpcodes() {
   opcodes_[0x7C] = [&]() { a_ = h_; return 4; };
   opcodes_[0x7D] = [&]() { a_ = l_; return 4; };
   opcodes_[0x7E] = [&, hl]() { a_ = memory_.read(hl()); return 8; };
-  opcodes_[0x7F] = [&]() { a_ = a_; return 4; };
+  opcodes_[0x7F] = [&]() { return 4; };
 
   opcodes_[0x80] = [&]() { return add(b_); };
   opcodes_[0x81] = [&]() { return add(c_); };

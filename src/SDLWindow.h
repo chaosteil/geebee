@@ -21,7 +21,7 @@ class Joypad;
 class SDLWindow : public Window {
  public:
   explicit SDLWindow(const std::string& title = "GeeBee");
-  virtual ~SDLWindow() = default;
+  ~SDLWindow() override = default;
 
   void setPixel(int x, int y, int color) override;
 

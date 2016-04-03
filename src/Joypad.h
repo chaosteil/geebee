@@ -25,10 +25,10 @@ class Joypad : public IOHandler {
     Max = 8
   };
 
-  Joypad(Memory& memory);
+  explicit Joypad(Memory& memory);
   Joypad(const Joypad& joypad) = delete;
   Joypad(Joypad&& joypad) = delete;
-  ~Joypad();
+  ~Joypad() override;
 
   void press(Key key);
   void release(Key key);
