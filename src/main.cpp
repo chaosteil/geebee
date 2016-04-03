@@ -15,8 +15,6 @@ using std::cout;
 using std::endl;
 using std::string;
 
-static gb::SDLManager sdl;
-
 int main(int argc, const char** argv) {
   cout << "GeeBee 0.1" << endl;
   po::options_description desc{"Allowed options"};
@@ -55,6 +53,7 @@ int main(int argc, const char** argv) {
   cout << "info: " << program.type() << " " << program.rom_size() << " "
        << program.ram_size() << endl;
 
+  gb::SDLManager sdl;
   gb::SDLWindow window;
   gb::CPU cpu{window, program};
   while (true) {
