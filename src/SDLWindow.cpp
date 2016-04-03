@@ -6,6 +6,9 @@
 
 namespace gb {
 
+const int SDLWindow::frames_per_second_ = 60;
+const int SDLWindow::ticks_per_frame_ = 1000 / frames_per_second_;
+
 SDLWindow::SDLWindow(const std::string& title)
     : Window(),
       window_(SDL_CreateWindow(title.c_str(), 0, 0, 160, 144, SDL_WINDOW_SHOWN),
@@ -29,6 +32,7 @@ void SDLWindow::setPixel(int x, int y, int color) {
 }
 
 bool SDLWindow::handleEvents() {
+  timer_ = SDL_GetTicks();
   SDL_Event e;
   while (SDL_PollEvent(&e)) {
     if (e.type == SDL_QUIT) {
@@ -53,6 +57,11 @@ void SDLWindow::draw() {
     return;
   }
   SDL_RenderPresent(renderer_.get());
+
+  uint32_t ticks = SDL_GetTicks() - timer_;
+  if (ticks < ticks_per_frame_) {
+    SDL_Delay(ticks_per_frame_ - ticks);
+  }
 }
 
 }  // namespace gb

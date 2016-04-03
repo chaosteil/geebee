@@ -25,12 +25,16 @@ class SDLWindow : public Window {
   void draw();
 
  private:
+  static const int frames_per_second_;
+  static const int ticks_per_frame_;
+
   std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window_;
   std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer*)>> renderer_;
   std::unique_ptr<SDL_Texture, std::function<void(SDL_Texture*)>> texture_;
   std::shared_ptr<SDL_Surface> surface_;
 
   SDL_Rect position_;
+  uint32_t timer_;
 };
 }
 
