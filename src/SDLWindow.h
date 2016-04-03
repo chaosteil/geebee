@@ -1,6 +1,7 @@
 #ifndef GEEBEE_SRC_SDLWINDOW_H
 #define GEEBEE_SRC_SDLWINDOW_H
 
+#include <functional>
 #include <memory>
 #include <string>
 
