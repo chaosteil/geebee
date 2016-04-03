@@ -45,8 +45,8 @@ class LCD : public IOHandler {
   };
 
   struct SpriteInfo {
-    Byte x{0};
     Byte y{0};
+    Byte x{0};
     Byte tile{0};
     Byte flags{0};
 

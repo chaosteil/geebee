@@ -90,18 +90,16 @@ Byte Memory::read(Word address) const {
     // I/O Ports
   }
   if (in(address, 0xFF00, 0xFF7F)) {
-    if (io_handling_) {
-      return io_[address - 0xFF00];
-    } else {
+    if (!io_handling_) {
       io_handling_ = true;
-      if (io_handlers_[address - 0xFF00]) {
-        Byte byte = io_handlers_[address - 0xFF00]->read(address);
+      IOHandler* handler = io_handlers_[address - 0xFF00];
+      if (handler) {
+        Byte byte = handler->read(address);
         io_handling_ = false;
         return byte;
       }
       io_handling_ = false;
     }
-
     return io_[address - 0xFF00];
 
     // High RAM (HRAM)
@@ -184,25 +182,26 @@ void Memory::write(Word address, Byte byte) {
 
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
-    if (io_handling_) {
-      io_[address - 0xFF00] = byte;
-    } else {
+    if (!io_handling_) {
       io_handling_ = true;
-      if (io_handlers_[address - 0xFF00]) {
-        io_handlers_[address - 0xFF00]->write(address, byte);
+      IOHandler* handler = io_handlers_[address - 0xFF00];
+      if (handler) {
+        handler->write(address, byte);
+        io_handling_ = false;
+        return;
       }
       io_handling_ = false;
-
-      if (address == Register::SerialTransferControl) {
-        serial_data_.push_back(io_[Register::SerialTransferData - 0xFF00]);
-      }
-
-      if (address == Register::BootMode && byte != 0x0) {
-        booting_ = false;
-      }
-
-      io_[address - 0xFF00] = byte;
     }
+
+    if (address == Register::SerialTransferControl) {
+      serial_data_.push_back(io_[Register::SerialTransferData - 0xFF00]);
+    }
+
+    if (address == Register::BootMode && byte != 0x0) {
+      booting_ = false;
+    }
+
+    io_[address - 0xFF00] = byte;
     // High RAM (HRAM)
   } else if (in(address, 0xFF80, 0xFFFE)) {
     hram_[address - 0xFF80] = byte;
@@ -234,7 +233,7 @@ void Memory::registerHandler(IOHandler* handler) {
 
 void Memory::unregisterHandler(IOHandler* handler) {
   for (Word i = 0xFF00; i <= 0xFF7F; ++i) {
-    if (handler->handlesAddress(i)) {
+    if (io_handlers_[i - 0xFF00] == handler) {
       io_handlers_[i - 0xFF00] = nullptr;
     }
   }

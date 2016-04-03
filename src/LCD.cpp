@@ -102,8 +102,8 @@ void LCD::write(Word address, Byte byte) {
 }
 
 LCD::SpriteInfo::SpriteInfo(const Memory& memory, int id)
-    : x(memory.read(0xFE00 + id * 4 + 1)),
-      y(memory.read(0xFE00 + id * 4 + 0)),
+    : y(memory.read(0xFE00 + id * 4 + 0)),
+      x(memory.read(0xFE00 + id * 4 + 1)),
       tile(memory.read(0xFE00 + id * 4 + 2)),
       flags(memory.read(0xFE00 + id * 4 + 3)) {}
 
@@ -163,6 +163,7 @@ void LCD::drawLine(int ly) {
 
   // OBJ
   std::vector<SpriteInfo> sprites;
+  sprites.reserve(40);
   for (int i = 0; i < 40; i++) {
     sprites.push_back(SpriteInfo{memory_, i});
   }
