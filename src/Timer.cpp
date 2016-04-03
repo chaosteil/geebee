@@ -19,16 +19,16 @@ Timer::~Timer() {
 
 void Timer::advance(int timing) {
   Byte control = memory_.read(Register::Control);
-  if (!bits::bit(control, 2)) {
-    return;
-  }
-
   divider_ += timing;
   while (divider_ >= clocks_[0]) {
     divider_ -= clocks_[0];
     Byte divider = memory_.read(Register::Divider);
     divider++;
     memory_.io()[Register::Divider - 0xFF00] = divider;
+  }
+
+  if (!bits::bit(control, 2)) {
+    return;
   }
 
   counter_ += timing;
