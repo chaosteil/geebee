@@ -11,6 +11,9 @@
 namespace gb {
 
 Memory::Memory(const Program& program) : program_(program), mbc_(program) {
+  for (IOHandler*& handler : io_handlers_) {
+    handler = nullptr;
+  }
   reset();
 }
 
@@ -91,12 +94,10 @@ Byte Memory::read(Word address) const {
       return io_[address - 0xFF00];
     } else {
       io_handling_ = true;
-      for (IOHandler* handler : io_handlers_) {
-        if (handler->handlesAddress(address)) {
-          Byte byte = handler->read(address);
-          io_handling_ = false;
-          return byte;
-        }
+      if (io_handlers_[address - 0xFF00]) {
+        Byte byte = io_handlers_[address - 0xFF00]->read(address);
+        io_handling_ = false;
+        return byte;
       }
       io_handling_ = false;
     }
@@ -187,13 +188,11 @@ void Memory::write(Word address, Byte byte) {
       io_[address - 0xFF00] = byte;
     } else {
       io_handling_ = true;
-      for (IOHandler* handler : io_handlers_) {
-        if (handler->handlesAddress(address)) {
-          handler->write(address, byte);
-        }
+      if (io_handlers_[address - 0xFF00]) {
+        io_handlers_[address - 0xFF00]->write(address, byte);
       }
       io_handling_ = false;
-      
+
       if (address == Register::SerialTransferControl) {
         serial_data_.push_back(io_[Register::SerialTransferData - 0xFF00]);
       }
@@ -226,13 +225,19 @@ void Memory::write(Word address, Byte byte) {
 void Memory::registerHandler(IOHandler* handler) {
   unregisterHandler(handler);
 
-  io_handlers_.push_back(handler);
+  for (Word i = 0xFF00; i <= 0xFF7F; ++i) {
+    if (handler->handlesAddress(i)) {
+      io_handlers_[i - 0xFF00] = handler;
+    }
+  }
 }
 
 void Memory::unregisterHandler(IOHandler* handler) {
-  io_handlers_.erase(
-      std::remove(io_handlers_.begin(), io_handlers_.end(), handler),
-      io_handlers_.end());
+  for (Word i = 0xFF00; i <= 0xFF7F; ++i) {
+    if (handler->handlesAddress(i)) {
+      io_handlers_[i - 0xFF00] = nullptr;
+    }
+  }
 }
 
 int Memory::in(Word address, Word from, Word to) {

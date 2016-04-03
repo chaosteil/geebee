@@ -1,8 +1,8 @@
 #ifndef GEEBEE_SRC_MEMORY_H
 #define GEEBEE_SRC_MEMORY_H
 
+#include <array>
 #include <string>
-#include <vector>
 
 #include "MBC.h"
 #include "types.h"
@@ -66,7 +66,7 @@ class Memory {
   Bytes io_;
   Bytes hram_;
 
-  std::vector<IOHandler*> io_handlers_;
+  std::array<IOHandler*, 0xFF80 - 0xFF00> io_handlers_;
   mutable bool io_handling_{false};
   std::string serial_data_;
 };
