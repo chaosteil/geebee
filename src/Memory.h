@@ -2,12 +2,14 @@
 #define GEEBEE_SRC_MEMORY_H
 
 #include <string>
+#include <vector>
 
 #include "MBC.h"
 #include "types.h"
 
 namespace gb {
 
+class IOHandler;
 class Program;
 
 class Memory {
@@ -45,6 +47,9 @@ class Memory {
   void setOAMAccess(bool enable) { oam_access_ = enable; }
   void setVRAMAccess(bool enable) { vram_access_ = enable; }
 
+  void registerHandler(IOHandler* handler);
+  void unregisterHandler(IOHandler* handler);
+
  private:
   static int in(Word address, Word from, Word to);
 
@@ -61,6 +66,8 @@ class Memory {
   Bytes io_;
   Bytes hram_;
 
+  std::vector<IOHandler*> io_handlers_;
+  mutable bool io_handling_{false};
   std::string serial_data_;
 };
 

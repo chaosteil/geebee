@@ -2,7 +2,9 @@
 #define GEEBEE_SRC_LCD_H
 
 #include <array>
+#include <unordered_set>
 
+#include "IOHandler.h"
 #include "types.h"
 
 namespace gb {
@@ -10,14 +12,19 @@ namespace gb {
 class Memory;
 class Window;
 
-class LCD {
+class LCD : public IOHandler {
  public:
   LCD(Window& window, Memory& memory);
-  ~LCD() = default;
+  LCD(const LCD& lcd) = delete;
+  LCD(LCD&& lcd) = delete;
+  ~LCD();
 
   bool doneFrame() const { return done_frame_; }
   void advance(int timing);
-  void draw();
+
+  bool handlesAddress(Word address) const override;
+  Byte read(Word address) override;
+  void write(Word address, Byte byte) override;
 
  private:
   enum class Mode : int { HBlank = 0, VBlank = 1, OAM = 2, VRAM = 3 };

@@ -9,7 +9,13 @@ namespace gb {
 
 const std::array<int, 4> Timer::clocks_{1024, 16, 64, 256};
 
-Timer::Timer(Memory& memory) : memory_(memory) {}
+Timer::Timer(Memory& memory) : memory_(memory) {
+  memory_.registerHandler(this);
+}
+
+Timer::~Timer() {
+  memory_.unregisterHandler(this);
+}
 
 void Timer::advance(int timing) {
   Byte control = memory_.read(Register::Control);
@@ -40,6 +46,22 @@ void Timer::advance(int timing) {
     }
     memory_.write(Register::Counter, counter);
   }
+}
+
+bool Timer::handlesAddress(Word address) const {
+  return address == Register::Divider;
+}
+
+Byte Timer::read(Word address) {
+  return memory_.read(address);
+}
+
+void Timer::write(Word address, Byte byte) {
+  if (address == Register::Divider) {
+    byte = 0x00;
+  }
+
+  memory_.write(address, byte);
 }
 
 }  // namespace gb

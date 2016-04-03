@@ -3,18 +3,25 @@
 
 #include <array>
 
+#include "IOHandler.h"
 #include "types.h"
 
 namespace gb {
 
 class Memory;
 
-class Timer {
+class Timer : public IOHandler {
  public:
   explicit Timer(Memory& memory);
-  ~Timer() = default;
+  Timer(const Timer& timer) = delete;
+  Timer(Timer&& timer) = delete;
+  ~Timer();
 
   void advance(int timing);
+
+  bool handlesAddress(Word address) const override;
+  Byte read(Word address) override;
+  void write(Word address, Byte byte) override;
 
  private:
   enum Register : Word {

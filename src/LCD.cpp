@@ -11,7 +11,12 @@ namespace gb {
 
 const std::array<int, 4> LCD::color_map_{255, 170, 85, 0};
 
-LCD::LCD(Window& window, Memory& memory) : window_(window), memory_(memory) {}
+LCD::LCD(Window& window, Memory& memory)
+    : IOHandler(), window_(window), memory_(memory) {
+  memory_.registerHandler(this);
+}
+
+LCD::~LCD() { memory_.unregisterHandler(this); }
 
 void LCD::advance(int timing) {
   done_frame_ = false;
@@ -75,6 +80,25 @@ void LCD::advance(int timing) {
 
   updateLyc();
   updateMemoryAccess();
+}
+
+bool LCD::handlesAddress(Word address) const {
+  return address == Register::Dma;
+}
+
+Byte LCD::read(Word address) { return memory_.read(address); }
+
+void LCD::write(Word address, Byte byte) {
+  if (address == Register::Dma) {
+    Word source_start = byte << 8 | 0x00;
+    Word source_end = byte << 8 | 0x9F;
+    Word destination = 0xFE00;
+    for (Word i = source_start; i <= source_end; i++, destination++) {
+      memory_.write(destination, read(i));
+    }
+  } else {
+    memory_.write(address, byte);
+  }
 }
 
 LCD::SpriteInfo::SpriteInfo(const Memory& memory, int id)

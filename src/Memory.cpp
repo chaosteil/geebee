@@ -1,9 +1,11 @@
 #include "Memory.h"
 
+#include <algorithm>
 #include <iostream>
 #include <stdexcept>
 #include <string>
 
+#include "IOHandler.h"
 #include "Program.h"
 
 namespace gb {
@@ -24,6 +26,8 @@ void Memory::reset() {
 
   oam_access_ = true;
   vram_access_ = true;
+
+  io_handling_ = false;
 }
 
 Byte Memory::read(Word address) const {
@@ -86,6 +90,21 @@ Byte Memory::read(Word address) const {
     if (address == 0xFF00) {
       return 0xEF;
     }
+
+    if (io_handling_) {
+      return io_[address - 0xFF00];
+    } else {
+      io_handling_ = true;
+      for (IOHandler* handler : io_handlers_) {
+        if (handler->handlesAddress(address)) {
+          Byte byte = handler->read(address);
+          io_handling_ = false;
+          return byte;
+        }
+      }
+      io_handling_ = false;
+    }
+
     return io_[address - 0xFF00];
 
     // High RAM (HRAM)
@@ -168,21 +187,26 @@ void Memory::write(Word address, Byte byte) {
 
     // I/O Ports
   } else if (in(address, 0xFF00, 0xFF7F)) {
-    // TODO(chaosteil): Move this DMA handling to LCD
-    if (address == 0xFF46) {
-      Word source_start = byte << 8 | 0x00;
-      Word source_end = byte << 8 | 0x9F;
-      Word destination = 0xFE00;
-      for (Word i = source_start; i <= source_end; i++, destination++) {
-        write(destination, read(i));
+    if (io_handling_) {
+      io_[address - 0xFF00] = byte;
+    } else {
+      io_handling_ = true;
+      for (IOHandler* handler : io_handlers_) {
+        if (handler->handlesAddress(address)) {
+          handler->write(address, byte);
+        }
       }
-    } else if (address == 0xFF02) {
-      serial_data_.push_back(io_[Register::SerialTransferData - 0xFF00]);
-    }
-    io_[address - 0xFF00] = byte;
+      io_handling_ = false;
+      
+      if (address == Register::SerialTransferControl) {
+        serial_data_.push_back(io_[Register::SerialTransferData - 0xFF00]);
+      }
 
-    if (address == Register::BootMode && byte != 0x0) {
-      booting_ = false;
+      if (address == Register::BootMode && byte != 0x0) {
+        booting_ = false;
+      }
+
+      io_[address - 0xFF00] = byte;
     }
     // High RAM (HRAM)
   } else if (in(address, 0xFF80, 0xFFFE)) {
@@ -201,6 +225,18 @@ void Memory::write(Word address, Byte byte) {
     throw std::runtime_error("Completely invalid address " +
                              std::to_string(address));
   }
+}
+
+void Memory::registerHandler(IOHandler* handler) {
+  unregisterHandler(handler);
+
+  io_handlers_.push_back(handler);
+}
+
+void Memory::unregisterHandler(IOHandler* handler) {
+  io_handlers_.erase(
+      std::remove(io_handlers_.begin(), io_handlers_.end(), handler),
+      io_handlers_.end());
 }
 
 int Memory::in(Word address, Word from, Word to) {

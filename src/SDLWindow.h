@@ -19,7 +19,7 @@ class SDLWindow : public Window {
   explicit SDLWindow(const std::string& title = "GeeBee");
   virtual ~SDLWindow() = default;
 
-  virtual void setPixel(int x, int y, int color) override;
+  void setPixel(int x, int y, int color) override;
 
   bool handleEvents();
   void draw();
@@ -36,6 +36,6 @@ class SDLWindow : public Window {
   SDL_Rect position_;
   uint32_t timer_;
 };
-}
+}  // namespace gb
 
 #endif
