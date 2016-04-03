@@ -137,6 +137,10 @@ void LCD::drawLine(int ly) {
   // BG
   if (bits::bit(lcdc, 0)) {
     int y = (ly + scy) % 256;
+    Byte bottom = 0x00;
+    Byte top = 0x00;
+    int last_tile_x = -1;
+
     for (int i = 0; i < 160; i++) {
       int x = (i + scx) % 256;
       int tile_x = x / 8;
@@ -144,13 +148,16 @@ void LCD::drawLine(int ly) {
       int pixel_x = 8 - x % 8 - 1;
       int pixel_y = y % 8;
 
-      Byte tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
-      int offset = tile;
-      if (!signed_tile) {
-        offset = static_cast<SByte>(tile);
+      if (tile_x != last_tile_x) {
+        int tile = memory_.read(bg_tile_map + (tile_y * 32) + tile_x);
+        int offset = tile;
+        if (!signed_tile) {
+          offset = static_cast<SByte>(tile);
+        }
+        bottom = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2));
+        top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
+        last_tile_x = tile_x;
       }
-      Byte bottom = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2));
-      Byte top = memory_.read(bg_tile_data + (offset * 16) + (pixel_y * 2) + 1);
 
       Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
       window_.setPixel(i, ly, pixel);
@@ -189,6 +196,12 @@ void LCD::drawLine(int ly) {
     if (bits::bit(info.flags, 6)) {
       pixel_y = 8 - pixel_y - 1;
     }
+
+    Byte bottom = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
+                               (pixel_y * 2));
+    Byte top = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
+                            (pixel_y * 2) + 1);
+
     for (int x = 0; x < 8; x++) {
       if (info.x + x - 8 < 0) {
         continue;
@@ -198,15 +211,11 @@ void LCD::drawLine(int ly) {
         pixel_x = 8 - pixel_x - 1;
       }
 
-      Byte bottom = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
-                                 (pixel_y * 2));
-      Byte top = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
-                              (pixel_y * 2) + 1);
-
       Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
-      Byte pixel = palette(obp, color_number(pixel_x, top, bottom));
 
-      if (pixel != 0xFF) {
+      int color = color_number(pixel_x, top, bottom);
+      if (color != 0) {
+        Byte pixel = palette(obp, color);
         window_.setPixel(info.x + x - 8, ly, pixel);
       }
     }
