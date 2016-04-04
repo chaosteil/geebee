@@ -135,6 +135,7 @@ void LCD::drawLine(int ly) {
   Word bg_tile_map = !bits::bit(lcdc, 3) ? 0x9800 : 0x9C00;
 
   // BG
+  std::vector<int> bgcolors(160, 0);
   if (bits::bit(lcdc, 0)) {
     int y = (ly + scy) % 256;
     Byte bottom = 0x00;
@@ -159,7 +160,9 @@ void LCD::drawLine(int ly) {
         last_tile_x = tile_x;
       }
 
-      Byte pixel = palette(bgp_data, color_number(pixel_x, top, bottom));
+      int color = color_number(pixel_x, top, bottom);
+      bgcolors[i] = color;
+      Byte pixel = palette(bgp_data, color);
       window_.setPixel(i, ly, pixel);
     }
   } else {
@@ -211,10 +214,11 @@ void LCD::drawLine(int ly) {
         pixel_x = 8 - pixel_x - 1;
       }
 
+      bool behind = bits::bit(info.flags, 7);
       Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
 
       int color = color_number(pixel_x, top, bottom);
-      if (color != 0) {
+      if (color != 0 && !(behind && bgcolors[info.x + x - 8] > 0)) {
         Byte pixel = palette(obp, color);
         window_.setPixel(info.x + x - 8, ly, pixel);
       }
