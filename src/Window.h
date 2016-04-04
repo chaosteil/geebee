@@ -8,7 +8,7 @@ class Window {
   Window() = default;
   virtual ~Window() = default;
 
-  virtual void setPixel(int x, int y, int color) {}
+  virtual void setPixel(int /*x*/, int /*y*/, int /*color*/) {}
 };
 
 }  // namespace gb

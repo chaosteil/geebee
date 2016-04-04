@@ -127,8 +127,6 @@ void LCD::drawLine(int ly) {
   Byte lcdc = memory_.read(Register::Lcdc);
   Byte scx = memory_.read(Register::Scx);
   Byte scy = memory_.read(Register::Scy);
-  Byte wx = memory_.read(Register::Wx);
-  Byte wy = memory_.read(Register::Wy);
 
   bool signed_tile = bits::bit(lcdc, 4);
   Word bg_tile_data = !signed_tile ? 0x9000 : 0x8000;

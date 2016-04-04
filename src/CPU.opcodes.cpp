@@ -411,8 +411,6 @@ void CPU::setupOpcodes() {
 
 void CPU::setupCbOpcodes() {
   // Helper functions
-  auto bc = [&]() { return bits::assemble(b_, c_); };
-  auto de = [&]() { return bits::assemble(d_, e_); };
   auto hl = [&]() { return bits::assemble(h_, l_); };
 
   // clang-format off
