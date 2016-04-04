@@ -16,6 +16,8 @@ class Timer : public IOHandler {
   Timer(const Timer& timer) = delete;
   Timer(Timer&& timer) = delete;
   ~Timer() override;
+  Timer& operator=(const Timer& timer) = delete;
+  Timer& operator=(const Timer&& timer) = delete;
 
   void advance(int timing);
 

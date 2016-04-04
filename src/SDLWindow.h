@@ -34,11 +34,11 @@ class SDLWindow : public Window {
 
   std::unique_ptr<SDL_Window, std::function<void(SDL_Window*)>> window_;
   std::unique_ptr<SDL_Renderer, std::function<void(SDL_Renderer*)>> renderer_;
+  std::unique_ptr<SDL_Surface, std::function<void(SDL_Surface*)>> surface_;
   std::unique_ptr<SDL_Texture, std::function<void(SDL_Texture*)>> texture_;
-  std::shared_ptr<SDL_Surface> surface_;
 
   SDL_Rect position_;
-  uint32_t timer_;
+  uint32_t timer_{0};
 };
 }  // namespace gb
 

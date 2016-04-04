@@ -29,6 +29,8 @@ class Joypad : public IOHandler {
   Joypad(const Joypad& joypad) = delete;
   Joypad(Joypad&& joypad) = delete;
   ~Joypad() override;
+  Joypad& operator=(const Joypad& joypad) = delete;
+  Joypad& operator=(const Joypad&& joypad) = delete;
 
   void press(Key key);
   void release(Key key);

@@ -18,11 +18,11 @@ SDLWindow::SDLWindow(const std::string& title)
               [](SDL_Window* win) { SDL_DestroyWindow(win); }),
       renderer_(SDL_CreateRenderer(window_.get(), -1, SDL_RENDERER_SOFTWARE),
                 [](SDL_Renderer* ren) { SDL_DestroyRenderer(ren); }),
+      surface_(SDL_CreateRGBSurface(0, 160, 144, 32, 0, 0, 0, 0),
+               [](SDL_Surface* surface) { SDL_FreeSurface(surface); }),
       texture_(SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_ARGB8888,
                                  SDL_TEXTUREACCESS_STREAMING, 160, 144),
                [](SDL_Texture* texture) { SDL_DestroyTexture(texture); }),
-      surface_(SDL_CreateRGBSurface(0, 160, 144, 32, 0, 0, 0, 0),
-               [](SDL_Surface* surface) { SDL_FreeSurface(surface); }),
       position_{0, 0, 160, 144} {
   SDL_FillRect(surface_.get(), NULL,
                SDL_MapRGBA(surface_->format, 255, 255, 255, 255));
@@ -48,7 +48,7 @@ bool SDLWindow::handleEvents(Joypad& joypad) {
     }
 
     if (e.type == SDL_KEYUP || e.type == SDL_KEYDOWN) {
-      std::function<void (Joypad::Key)> key;
+      std::function<void(Joypad::Key)> key;
       if (e.type == SDL_KEYDOWN) {
         key = std::bind(&Joypad::press, &joypad, std::placeholders::_1);
       } else {  // (e.type == SDL_KEYUP)
