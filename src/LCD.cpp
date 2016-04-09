@@ -204,6 +204,66 @@ void LCD::drawLine(int ly) {
   }
 
   // OBJ
+  bool big_sprites = bits::bit(lcdc, 2);
+  std::vector<SpriteInfo> sprites = getSprites(ly, big_sprites);
+  // Keep at most 10 sprites
+  int size = std::min(10, static_cast<int>(sprites.size()));
+  // Draw them! Back to front, so front renders on top.
+  for (int i = size - 1; i >= 0; i--) {
+    SpriteInfo& info = sprites[i];
+    int pixel_y = ly - info.y + 16;
+    int sprite_count = big_sprites ? 2 : 1;
+
+    Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
+    bool reverse_x = bits::bit(info.flags, 5);
+    bool reverse_y = bits::bit(info.flags, 6);
+    bool behind = bits::bit(info.flags, 7);
+
+    for (int sprites = 0; sprites < sprite_count; sprites++) {
+      Byte sprite_tile = info.tile;
+
+      // If we're in big sprite mode, we select our tiles a bit differently.
+      if (big_sprites) {
+        if (sprites == 0) {
+          sprite_tile = info.tile & 0xFE;
+        } else {
+          sprite_tile = info.tile | 0x01;
+          pixel_y -= 8;
+        }
+      }
+
+      if (reverse_y) {
+        pixel_y = 8 - pixel_y - 1;
+        // In big sprite mode we have to flip the two tiles
+        if (big_sprites) {
+          pixel_y += sprites == 1 ? -8 : 8;
+        }
+      }
+
+      Byte bottom = memory_.read(0x8000 + (static_cast<int>(sprite_tile) * 16) +
+                                 (pixel_y * 2));
+      Byte top = memory_.read(0x8000 + (static_cast<int>(sprite_tile) * 16) +
+                              (pixel_y * 2) + 1);
+      for (int x = 0; x < 8; x++) {
+        if (info.x + x - 8 < 0) {
+          continue;
+        }
+        int pixel_x = 8 - x % 8 - 1;
+        if (reverse_x) {
+          pixel_x = 8 - pixel_x - 1;
+        }
+
+        int color = color_number(pixel_x, top, bottom);
+        if (color != 0 && !(behind && bgcolors[info.x + x - 8] > 0)) {
+          Byte pixel = palette(obp, color);
+          window_.setPixel(info.x + x - 8, ly, pixel);
+        }
+      }
+    }
+  }
+}
+
+std::vector<LCD::SpriteInfo> LCD::getSprites(int ly, bool big_sprites) {
   std::vector<SpriteInfo> sprites;
   sprites.reserve(40);
   for (int i = 0; i < 40; i++) {
@@ -211,9 +271,10 @@ void LCD::drawLine(int ly) {
   }
   // Remove all sprites from consideration for this line if they don't fit in y
   sprites.erase(std::remove_if(std::begin(sprites), std::end(sprites),
-                               [ly](const SpriteInfo& info) {
+                               [ly, big_sprites](const SpriteInfo& info) {
                                  return info.y == 0 || info.y >= 160 ||
-                                        ly < info.y - 16 || ly >= info.y - 8;
+                                        ly < info.y - 16 ||
+                                        ly >= info.y - (big_sprites ? 0 : 8);
                                }),
                 sprites.end());
   // Sort all leftover sprites by x coordinate
@@ -222,40 +283,7 @@ void LCD::drawLine(int ly) {
               return left.x < right.x;
             });
 
-  // Keep at most 10 sprites
-  int size = std::min(10, static_cast<int>(sprites.size()));
-  // Draw them!
-  for (int i = size - 1; i >= 0; i--) {
-    SpriteInfo& info = sprites[i];
-    int pixel_y = ly - info.y + 16;
-    if (bits::bit(info.flags, 6)) {
-      pixel_y = 8 - pixel_y - 1;
-    }
-
-    Byte bottom = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
-                               (pixel_y * 2));
-    Byte top = memory_.read(0x8000 + (static_cast<int>(info.tile) * 16) +
-                            (pixel_y * 2) + 1);
-
-    for (int x = 0; x < 8; x++) {
-      if (info.x + x - 8 < 0) {
-        continue;
-      }
-      int pixel_x = 8 - x % 8 - 1;
-      if (bits::bit(info.flags, 5)) {
-        pixel_x = 8 - pixel_x - 1;
-      }
-
-      bool behind = bits::bit(info.flags, 7);
-      Byte obp = bits::bit(info.flags, 4) ? obp1_data : obp0_data;
-
-      int color = color_number(pixel_x, top, bottom);
-      if (color != 0 && !(behind && bgcolors[info.x + x - 8] > 0)) {
-        Byte pixel = palette(obp, color);
-        window_.setPixel(info.x + x - 8, ly, pixel);
-      }
-    }
-  }
+  return sprites;
 }
 
 void LCD::resetInterruptFlags() {

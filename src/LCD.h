@@ -3,6 +3,7 @@
 
 #include <array>
 #include <unordered_set>
+#include <vector>
 
 #include "IOHandler.h"
 #include "types.h"
@@ -57,6 +58,7 @@ class LCD : public IOHandler {
   static const std::array<int, 4> color_map_;
 
   void drawLine(int ly);
+  std::vector<SpriteInfo> getSprites(int ly, bool big_sprites);
   void resetInterruptFlags();
   void setMode(Mode mode);
   void updateMemoryAccess();
